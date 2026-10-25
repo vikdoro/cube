@@ -69,7 +69,7 @@ const badge = computed(() => {
   if (p?.kind === 'turn' && p.blocked) return { text: 'Middle row doesn\'t turn', on: true }
   const a = arrows.value
   if (!a) return { text: '', on: false }
-  // after the player's own turn the letter only shows briefly, then Undo takes its place
+  // after the player's own turn the letter only shows briefly, then it fades
   const l = lingering.value
   const short = a.lingering && l?.byPlayer && now.value - l.end >= LETTER_MS
   return { text: boardMoveName(view.value, a.move), on: a.alpha > 0.2 && !short }
@@ -171,7 +171,6 @@ export function useCube() {
   return {
     state, view, turning, rolling, preview, now, busy, livePreview, arrows, badge,
     turn, reset, setView, rollToSlot, showArrows, hideArrows, setPreview,
-    hasQueuedTurns: () => queue.length > 0,
     /** Called as each turn starts, once the state has changed. */
     onTurnApplied: (fn: TurnListener) => { applied.push(fn) },
     /** Called when each turn has finished animating. */

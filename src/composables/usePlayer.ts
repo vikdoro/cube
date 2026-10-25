@@ -1,12 +1,12 @@
 import { shallowRef } from 'vue'
-import { LETTER_MS, UNDO_MS } from '../board/motion'
+import { UNDO_MS } from '../board/motion'
 import { inverse, type Move } from '../cube/model'
 import { useCube } from './useCube'
 import { usePractice } from './usePractice'
 
 /**
- * The player's own turns, and undoing them. After each turn lands, its letter shows a moment longer, then Undo takes
- * its place for a few seconds. Each tap turns the last one back, and Undo comes back after that for the one before.
+ * The player's own turns, and undoing them. Undo shows under the board the moment a turn is made, for a second. Each tap
+ * turns the last one back, and Undo shows again for the one before.
  */
 const cube = useCube()
 const practice = usePractice()
@@ -24,8 +24,9 @@ function hideUndo() {
 
 function offerUndo() {
   hideUndo()
-  if (!undoable.length || practice.drill.value?.done || cube.hasQueuedTurns()) return
-  timers = [setTimeout(() => { undoOffered.value = true }, LETTER_MS), setTimeout(hideUndo, LETTER_MS + UNDO_MS)]
+  if (!undoable.length || practice.drill.value?.done) return
+  undoOffered.value = true
+  timers = [setTimeout(hideUndo, UNDO_MS)]
 }
 
 function playerTurn(move: Move, undoing = false) {
@@ -33,14 +34,14 @@ function playerTurn(move: Move, undoing = false) {
   if (!undoing) undoable.push(move)
   practice.recordTurn(move)
   cube.turn(move, true)
+  offerUndo()
 }
 
 function undo() {
-  if (cube.busy.value || !undoable.length || practice.drill.value?.done) return
+  if (!undoable.length || practice.drill.value?.done) return // a tap while the turn plays queues behind it
   playerTurn(inverse(undoable.pop()!), true)
 }
 
-cube.onTurnLanded((_, byPlayer) => { if (byPlayer) offerUndo() })
 cube.onReset(() => { undoable.length = 0; hideUndo() })
 
 export function usePlayer() {

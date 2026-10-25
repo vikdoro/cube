@@ -17,6 +17,16 @@ const player = usePlayer()
 const { drill } = usePractice()
 const svg = useTemplateRef<SVGSVGElement>('svg')
 
+// as wide as it can be, leaving room under it for Undo; the margin under the plate (where the bottom arrows go) is
+// given back, so Undo centres in the space under the cube itself rather than under the margin
+const UNDO_ROOM = '64px'
+const [, vbY, vbW, vbH] = VIEW_BOX.split(' ').map(Number)
+const fit = {
+  aspectRatio: `${vbW} / ${vbH}`,
+  maxHeight: `calc(100cqh - ${UNDO_ROOM})`,
+  marginBottom: `calc(${PLATE_HALF - vbY - vbH} * min(100cqw / ${vbW}, (100cqh - ${UNDO_ROOM}) / ${vbH}))`,
+}
+
 const FACE_NAME = { U: 'top', D: 'bottom', R: 'right', L: 'left', F: 'front', B: 'back' } as const
 const label = computed(() =>
   `The cube as an open box: its ${FACE_NAME[facingFace(cube.view.value)]} face in the middle, four sides around it, the lid hanging open above`)
@@ -103,7 +113,7 @@ function endDrag(e: PointerEvent, commit: boolean) {
 
 <template>
   <svg
-    ref="svg" :viewBox="VIEW_BOX" role="img" :aria-label="label"
+    ref="svg" :viewBox="VIEW_BOX" :style="fit" role="img" :aria-label="label"
     @pointerdown="onPointerDown" @pointermove="onPointerMove"
     @pointerup="endDrag($event, true)" @pointercancel="endDrag($event, false)"
   >
@@ -134,7 +144,7 @@ function endDrag(e: PointerEvent, commit: boolean) {
 </template>
 
 <style scoped>
-svg { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg { flex: none; width: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
 .plate { fill: var(--plate); }
 .lid { stroke: var(--plate); stroke-width: 8; stroke-linejoin: round; }
 .sticker { stroke-width: 1.6; stroke-linejoin: round; }

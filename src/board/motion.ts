@@ -5,9 +5,10 @@ export const ROLL_MS = 560
 /** After a turn its arrows hold, then fade. */
 export const ARROW_HOLD_MS = 650
 export const ARROW_FADE_MS = 450
-/** The move's letter shows this long after it lands, then Undo takes its place for UNDO_MS. */
+/** The move's letter shows this long after it lands. */
 export const LETTER_MS = 350
-export const UNDO_MS = 4000
+/** Undo shows this long from the moment a turn is made. */
+export const UNDO_MS = 1000
 
 export const easeInOut = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 

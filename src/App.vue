@@ -12,6 +12,7 @@ import DrillIntroSheet from './components/DrillIntroSheet.vue'
 import HelpSheet from './components/HelpSheet.vue'
 import PracticeSheet from './components/PracticeSheet.vue'
 import TopBar from './components/TopBar.vue'
+import UndoButton from './components/UndoButton.vue'
 
 const { playerTurn, undo } = usePlayer()
 const sheets = useSheets()
@@ -36,7 +37,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeyDown))
 <template>
   <div class="app">
     <TopBar />
-    <main class="stage"><CubeBoard /></main>
+    <!-- the board sits in the middle, with Undo centred in the space under it -->
+    <main class="stage">
+      <div class="spacer" />
+      <CubeBoard />
+      <UndoButton />
+    </main>
     <DrillBar />
   </div>
   <HelpSheet />
@@ -47,5 +53,6 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeyDown))
 
 <style scoped>
 .app { height: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; padding-inline: 16px; padding-block-end: calc(12px + env(safe-area-inset-bottom, 0px)); }
-.stage { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; }
+.stage { flex: 1; min-height: 0; display: flex; flex-direction: column; container-type: size; }
+.spacer { flex: 1 0 0; }
 </style>
