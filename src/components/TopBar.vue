@@ -19,7 +19,7 @@ const canScramble = computed(() => isSolved(cube.state.value) && !drill.value)
     <!-- the move being made, centred in the bar so it never covers the board or its arrows -->
     <div class="pill badge" :class="{ on: cube.badge.value.on }" aria-live="polite">{{ cube.badge.value.text }}</div>
     <button v-if="canScramble" @click="cube.reset(scramble(cube.state.value))">Scramble</button>
-    <button aria-haspopup="dialog" @click="sheets.open('course')">Learn</button>
+    <button aria-haspopup="dialog" @click="sheets.open('practice')">Practice</button>
     <button class="info" aria-haspopup="dialog" aria-label="How to read the board" @click="sheets.open('help')">?</button>
   </header>
 </template>

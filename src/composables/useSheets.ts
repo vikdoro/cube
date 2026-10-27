@@ -1,7 +1,7 @@
 import { shallowRef } from 'vue'
 
 /** The bottom sheets: everything that explains or chooses slides up over the board. One is open at a time. */
-export type SheetName = 'help' | 'course' | 'intro' | 'done'
+export type SheetName = 'help' | 'practice' | 'intro' | 'done'
 
 const current = shallowRef<SheetName | null>(null)
 /** The intro sheet was opened from a drill in progress ("Steps"), not before its first puzzle. */

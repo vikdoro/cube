@@ -5,16 +5,14 @@ import { computed, useTemplateRef } from 'vue'
 import { arrowPaths } from '../board/arrows'
 import { stickerShapes } from '../board/frame'
 import { bestOption, COMMIT_PX, dragOptions, isOffBoard, nearestSlot, REACH_PX, SLOP_PX, type DragOption } from '../board/gestures'
-import { LID_PLATE, placements, PLATE_HALF, pointsAttr, scalePolygon, VIEW_BOX, type Point } from '../board/layout'
+import { LID_PLATE, PLATE_HALF, pointsAttr, VIEW_BOX, type Point } from '../board/layout'
 import { inLayer, SLOTS } from '../cube/model'
 import { facingFace } from '../cube/view'
 import { useCube } from '../composables/useCube'
 import { usePlayer } from '../composables/usePlayer'
-import { usePractice } from '../composables/usePractice'
 
 const cube = useCube()
 const player = usePlayer()
-const { drill } = usePractice()
 const svg = useTemplateRef<SVGSVGElement>('svg')
 
 // as wide as it can be, leaving room under it for Undo; the margin under the plate (where the bottom arrows go) is
@@ -39,14 +37,6 @@ const stickers = computed(() => {
     tappable: !cube.rolling.value && s.depth === -1,
     lit: !!live && inLayer(SLOTS[s.slot].pos, live.move.layer),
   }))
-})
-
-// the drill's working piece: a ring around its slots (slots stay put while stickers move through them)
-const focusRings = computed(() => {
-  const d = drill.value
-  if (!d?.focus || d.done || cube.rolling.value) return []
-  const here = placements(cube.view.value)
-  return d.focus.map(slot => pointsAttr(scalePolygon(here[slot].points, 1.14)))
 })
 
 const arrows = computed(() => {
@@ -106,7 +96,7 @@ function endDrag(e: PointerEvent, commit: boolean) {
   const d = drag, p = cube.preview.value
   drag = null
   if (commit && d.moved && p?.kind === 'turn' && !p.blocked && p.ready) player.playerTurn(p.move)
-  else if (commit && !d.moved && !drill.value?.stage) cube.rollToSlot(d.tapSlot) // a lesson keeps the top in the middle
+  else if (commit && !d.moved) cube.rollToSlot(d.tapSlot)
   cube.setPreview(null)
 }
 </script>
@@ -134,7 +124,6 @@ function endDrag(e: PointerEvent, commit: boolean) {
       <polygon v-if="s.depth > 0" :points="s.points" class="shade" :opacity="0.05 * s.depth" />
     </template>
 
-    <polygon v-for="(points, i) in focusRings" :key="'focus' + i" class="focus-ring" :points="points" />
 
     <template v-if="arrows">
       <path v-for="(d, i) in arrows.paths" :key="'halo' + i" :d="d" class="arrow-halo" :opacity="arrows.alpha" />
@@ -151,7 +140,6 @@ svg { flex: none; width: 100%; display: block; touch-action: none; user-select: 
 .sticker.tappable { cursor: pointer; }
 .sticker.lit { stroke: var(--accent); stroke-width: 3; }
 .shade { fill: #000; pointer-events: none; }
-.focus-ring { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linejoin: round; pointer-events: none; }
 .arrowhead { fill: var(--accent); }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .arrow-halo { fill: none; stroke: var(--halo); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }

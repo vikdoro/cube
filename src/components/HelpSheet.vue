@@ -12,7 +12,7 @@ const { resetToSolved } = usePractice()
     <p><b>An open box.</b> The middle is the face you are looking at. The four sides fold out around it, three rows deep, and the face on the far side hangs open above like a lid, hinged on the top edge, so all six faces are in view.</p>
     <p><b>Tap any side</b> to roll the cube towards you so that side is in the middle. Tap the lid to turn the cube all the way over.</p>
     <p><b>Drag a sticker</b> to turn. As soon as you move, the row or ring that will turn lights up with its arrows; let go to turn it. To cancel, drag back to where you started or drag off the board. The middle row and column don't turn, only the outer ones.</p>
-    <p><b>Learn</b> teaches the cube from its last step backwards, in short lessons that always end with a solved cube.</p>
+    <p><b>Practice</b> turns the cube a few times from solved for you to turn back, so every puzzle ends with a solved cube.</p>
     <button class="link" @click="resetToSolved">Reset to solved</button>
   </BottomSheet>
 </template>

@@ -31,8 +31,6 @@ const view = shallowRef<View>(IDENTITY)
 const turning = shallowRef<Turning | null>(null)
 const rolling = shallowRef<Rolling | null>(null)
 const lingering = shallowRef<Lingering | null>(null)
-/** Arrows that stay on the board until taken down: the coach showing the next move. */
-const pinned = shallowRef<Move | null>(null)
 const preview = shallowRef<Preview | null>(null)
 /** The animation clock: updated every frame while something moves. */
 const now = shallowRef(performance.now())
@@ -61,7 +59,6 @@ const arrows = computed(() => {
     const alpha = since < ARROW_HOLD_MS ? 1 : Math.max(0, 1 - (since - ARROW_HOLD_MS) / ARROW_FADE_MS)
     return alpha > 0 ? { move: lingering.value.move, alpha, lingering: true } : null
   }
-  if (pinned.value && !rolling.value) return { move: pinned.value, alpha: 1, lingering: true }
   return null
 })
 
@@ -131,7 +128,7 @@ function turn(move: Move, byPlayer = false) {
 /** Put the cube in a new state at once, dropping any turns still to play. */
 function reset(next: CubeState) {
   queue = []
-  turning.value = rolling.value = lingering.value = pinned.value = null
+  turning.value = rolling.value = lingering.value = null
   state.value = next
   resets.forEach(fn => fn())
 }
@@ -165,11 +162,6 @@ function hideArrows() {
   lingering.value = null
 }
 
-/** Keep a move's arrows on the board (after any turn that is landing fades) until unpinned or the cube is reset. */
-function pinArrows(move: Move | null) {
-  pinned.value = move
-}
-
 function setPreview(next: Preview | null) {
   preview.value = next
   now.value = performance.now()
@@ -178,7 +170,7 @@ function setPreview(next: Preview | null) {
 export function useCube() {
   return {
     state, view, turning, rolling, preview, now, busy, livePreview, arrows, badge,
-    turn, reset, setView, rollToSlot, showArrows, hideArrows, pinArrows, setPreview,
+    turn, reset, setView, rollToSlot, showArrows, hideArrows, setPreview,
     /** Called as each turn starts, once the state has changed. */
     onTurnApplied: (fn: TurnListener) => { applied.push(fn) },
     /** Called when each turn has finished animating. */
