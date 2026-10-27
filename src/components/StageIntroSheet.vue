@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // How a drill works: shown before its first puzzle, and later from "Steps".
-import { TWIST_ALG } from '../cube/drills'
+import { computed } from 'vue'
 import { moveName } from '../cube/model'
+import { stage } from '../cube/stages'
 import { usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
 import { drillTitle, plural } from '../text'
@@ -9,6 +10,8 @@ import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
 const { drill, nextPuzzle, resetToSolved } = usePractice()
+
+const lesson = computed(() => drill.value?.kind === 'stage' ? stage(drill.value.stage!) : null)
 </script>
 
 <template>
@@ -20,14 +23,19 @@ const { drill, nextPuzzle, resetToSolved } = usePractice()
         <li><span>A wrong turn is just one more to undo. You can't get stuck.</span></li>
         <li><span>Stuck anyway? <b>Hint</b> draws the next turn on the board.</span></li>
       </ol>
-      <!-- the twist drill always starts with the top face in the middle, so the cube's own move names apply -->
-      <ol v-else class="steps">
-        <li><span>Every piece is in place; only some top corners are twisted. Work on the <b>ringed corner</b>, front-right of the middle face.</span></li>
-        <li><span>If yellow isn't facing up there, do <span class="seq"><span v-for="(move, i) in TWIST_ALG" :key="i" class="mv">{{ moveName(move) }}</span></span> and repeat it until it is, 2 or 4 times.</span></li>
-        <li><span>Then turn only the top, <span class="mv">U</span>to bring the next twisted corner into the ring. Don't roll the cube.</span></li>
-        <li><span>Half-way, the rest of the cube looks broken. Keep going: it comes back with the last corner.</span></li>
-        <li><span>The moves sit under the board with the next one lit up. <b>Hint</b> draws it on the board.</span></li>
-      </ol>
+      <!-- lessons always run with the top face in the middle, so the cube's own move names apply -->
+      <template v-else-if="lesson">
+        <ol class="steps">
+          <li v-for="(line, i) in lesson.intro" :key="i"><span>{{ line }}</span></li>
+        </ol>
+        <div class="chips">
+          <span v-for="(chunk, c) in lesson.chunks" :key="c" class="chunk">
+            <span class="chunk-name">{{ chunk.name }}</span>
+            <span class="chunk-moves"><span v-for="(move, i) in chunk.moves" :key="i" class="mv">{{ moveName(move) }}</span></span>
+          </span>
+        </div>
+        <p v-if="drill.scaffold === 'follow'">This first time, the next move's arrows stay on the board: just follow them.</p>
+      </template>
       <div class="actions">
         <button class="btn primary big" autofocus @click="sheets.close">{{ sheets.introMidway.value ? 'Continue' : 'Start' }}</button>
         <div v-if="sheets.introMidway.value" class="split">
@@ -43,7 +51,5 @@ const { drill, nextPuzzle, resetToSolved } = usePractice()
 .steps { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
 .steps li { counter-increment: step; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
 .steps li::before { content: counter(step); width: 28px; height: 28px; border-radius: 50%; background: var(--fill); color: var(--accent); display: grid; place-items: center; font: 700 14px var(--round); }
-.seq { white-space: nowrap; }
-.seq .mv:last-child { margin-inline-end: 0; }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 </style>

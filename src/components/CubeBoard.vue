@@ -106,7 +106,7 @@ function endDrag(e: PointerEvent, commit: boolean) {
   const d = drag, p = cube.preview.value
   drag = null
   if (commit && d.moved && p?.kind === 'turn' && !p.blocked && p.ready) player.playerTurn(p.move)
-  else if (commit && !d.moved) cube.rollToSlot(d.tapSlot)
+  else if (commit && !d.moved && !drill.value?.stage) cube.rollToSlot(d.tapSlot) // a lesson keeps the top in the middle
   cube.setPreview(null)
 }
 </script>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { extendPath, pathFromSolved, randomTurns, twistCase, twistNext } from './drills'
-import { applyMove, applyMoves, isSolved, SOLVED, type CubeState, type Move } from './model'
+import { extendPath, pathFromSolved, randomTurns } from './drills'
+import { applyMoves, isSolved, SOLVED, type Move } from './model'
 
 // a seeded generator, so failures can be reproduced
 function seeded(seed: number) {
@@ -35,22 +35,5 @@ describe('undo drill', () => {
     expect(extendPath([U, R], R)).toEqual([U, { layer: 'R', amount: 2 }])
     expect(extendPath([U, R], { layer: 'R', amount: 3 })).toEqual([U])
     expect(extendPath([U], R)).toEqual([U, R])
-  })
-})
-
-describe('twist drill', () => {
-  it('every case is solved by following the hints', () => {
-    const random = seeded(3)
-    for (let i = 0; i < 30; i++) {
-      let state: CubeState = twistCase(random)
-      expect(isSolved(state)).toBe(false)
-      const history: Move[] = []
-      while (!isSolved(state) && history.length < 200) {
-        const { move } = twistNext(history, state)
-        history.push(move)
-        state = applyMove(state, move)
-      }
-      expect(isSolved(state)).toBe(true)
-    }
   })
 })

@@ -1,15 +1,10 @@
-import { applyMove, applyMoves, faceOf, FACES, inverse, isSolved, sameMove, SOLVED, type CubeState, type Face, type Move } from './model'
+import { applyMove, FACES, inverse, isSolved, type CubeState, type Face, type Move } from './model'
 
 /**
- * Practice drills start from a position a known number of moves (or one known step) away from solved, so every
- * attempt ends with a solved cube.
- *
- * - "undo": a few random quarter turns. The hint is the inverse of the last turn still standing; the player's own
- *   turns cancel against it.
- * - "twist": the last step of the beginner method. Built by running the step's own algorithm on each top corner,
- *   so every position it makes is reachable and solvable by exactly that method.
+ * The warm-up drill: a few random quarter turns to undo. The hint is the inverse of the last turn still standing; the
+ * player's own turns cancel against it. Every attempt ends with a solved cube. The method's stages live in ./stages.
  */
-export type DrillKind = 'undo' | 'twist'
+export type DrillKind = 'undo' | 'stage'
 
 const AXIS: Record<Face, number> = { U: 1, D: 1, R: 0, L: 0, F: 2, B: 2 }
 const QUARTER_TURNS: Move[] = FACES.flatMap(layer => [{ layer, amount: 1 }, { layer, amount: 3 }] as Move[])
@@ -62,47 +57,4 @@ export function extendPath(path: readonly Move[], move: Move): Move[] {
   if (!last || last.layer !== move.layer) return [...path, move]
   const amount = (last.amount + move.amount) % 4
   return amount ? [...path.slice(0, -1), { layer: move.layer, amount: amount as Move['amount'] }] : path.slice(0, -1)
-}
-
-// ---------- twist the last corners ----------
-
-/** R′ D′ R D: twice twists the front-right top corner one way, four times the other way. */
-export const TWIST_ALG: readonly Move[] = [
-  { layer: 'R', amount: 3 }, { layer: 'D', amount: 3 }, { layer: 'R', amount: 1 }, { layer: 'D', amount: 1 },
-]
-export const TOP_TURN: Move = { layer: 'U', amount: 1 }
-
-/** The slot of the top face's front-right sticker: the corner the twist drill works on. */
-export const TWIST_SLOT = 8
-
-/** A random case of the last step: some top corners twisted, the twists adding up to whole turns. */
-export function twistCase(random = Math.random): CubeState {
-  let twists: number[]
-  do twists = [0, 1, 2, 3].map(() => randomInt(3, random))
-  while (twists.reduce((a, k) => a + k, 0) % 3 || twists.every(k => !k))
-  const moves: Move[] = []
-  for (const k of twists) {
-    for (let r = 0; r < 2 * k; r++) moves.push(...TWIST_ALG)
-    moves.push(TOP_TURN) // bring the next corner to the front-right
-  }
-  return applyMoves(SOLVED, moves)
-}
-
-const yellowUp = (state: CubeState) => faceOf(state[TWIST_SLOT]) === 'U'
-
-/**
- * The next move of the twist step, read from what the player just did and from the corner in front of them.
- * `step` is its place in the routine: 0–3 within TWIST_ALG, 4 for turning the top.
- */
-export function twistNext(history: readonly Move[], state: CubeState): { move: Move; step: number } {
-  for (let j = 3; j >= 1; j--) {
-    if (history.length >= j && history.slice(-j).every((m, i) => sameMove(m, TWIST_ALG[i]))) return { move: TWIST_ALG[j], step: j }
-  }
-  if (!yellowUp(state)) return { move: TWIST_ALG[0], step: 0 }
-  // this corner is done: turn the top to the nearest unfinished one, or to line the top up at the end
-  for (const amount of [1, 3, 2] as const) {
-    const next = applyMove(state, { layer: 'U', amount })
-    if (isSolved(next) || !yellowUp(next)) return { move: { layer: 'U', amount: amount === 2 ? 1 : amount }, step: 4 }
-  }
-  return { move: TOP_TURN, step: 4 }
 }

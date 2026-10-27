@@ -1,4 +1,5 @@
 import type { DrillKind } from './cube/drills'
+import type { StageId } from './cube/method'
 
 /** What the practice drills remember between visits, in this browser only. */
 export interface PracticeMemory {
@@ -8,20 +9,37 @@ export interface PracticeMemory {
   seen?: Partial<Record<DrillKind, boolean>>
 }
 
-const KEY = 'practice'
+/** Course progress: a mastery meter per stage, and when it was last practised. */
+export interface CourseMemory {
+  v: 1
+  stages: Partial<Record<StageId, { bars: number; last: string }>>
+}
 
-export function loadPractice(): PracticeMemory {
+const PRACTICE = 'practice', COURSE = 'course'
+
+function read(key: string): unknown {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? 'null') || {}
+    return JSON.parse(localStorage.getItem(key) ?? 'null')
   } catch {
-    return {}
+    return null
   }
 }
 
-export function savePractice(patch: PracticeMemory) {
+function write(key: string, value: unknown) {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ ...loadPractice(), ...patch }))
+    localStorage.setItem(key, JSON.stringify(value))
   } catch {
     // storage can be blocked (private mode, disabled site data); the app works without it
   }
 }
+
+export const loadPractice = (): PracticeMemory => (read(PRACTICE) as PracticeMemory | null) || {}
+
+export const savePractice = (patch: PracticeMemory) => write(PRACTICE, { ...loadPractice(), ...patch })
+
+export function loadCourse(): CourseMemory {
+  const m = read(COURSE) as Partial<CourseMemory> | null
+  return m && m.v === 1 && m.stages ? { v: 1, stages: m.stages } : { v: 1, stages: {} }
+}
+
+export const saveCourse = (memory: CourseMemory) => write(COURSE, memory)

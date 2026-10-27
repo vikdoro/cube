@@ -5,12 +5,12 @@ import { onBeforeUnmount, onMounted } from 'vue'
 import { FACES, type Face } from './cube/model'
 import { usePlayer } from './composables/usePlayer'
 import { useSheets } from './composables/useSheets'
+import CourseSheet from './components/CourseSheet.vue'
 import CubeBoard from './components/CubeBoard.vue'
 import DrillBar from './components/DrillBar.vue'
-import DrillDoneSheet from './components/DrillDoneSheet.vue'
-import DrillIntroSheet from './components/DrillIntroSheet.vue'
 import HelpSheet from './components/HelpSheet.vue'
-import PracticeSheet from './components/PracticeSheet.vue'
+import LessonDoneSheet from './components/LessonDoneSheet.vue'
+import StageIntroSheet from './components/StageIntroSheet.vue'
 import TopBar from './components/TopBar.vue'
 import UndoButton from './components/UndoButton.vue'
 
@@ -46,9 +46,9 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeyDown))
     <DrillBar />
   </div>
   <HelpSheet />
-  <PracticeSheet />
-  <DrillIntroSheet />
-  <DrillDoneSheet />
+  <CourseSheet />
+  <StageIntroSheet />
+  <LessonDoneSheet />
 </template>
 
 <style scoped>
