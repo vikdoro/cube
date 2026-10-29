@@ -3,7 +3,8 @@ import type { View } from '../cube/view'
 import { lerpPolygon, placements, type Polygon } from './layout'
 import { easeInOut, ROLL_MS, TURN_MS } from './motion'
 
-const COLOURS: Record<Face, string> = { U: '#ffd60a', R: '#ff8f1f', F: '#2fb357', D: '#f4f4f6', L: '#ea3a30', B: '#1f6fe5' }
+// a standard cube held as the board shows it: yellow in the middle (its bottom), white on the lid, green near, red right
+const COLOURS: Record<Face, string> = { U: '#ffd60a', R: '#ea3a30', F: '#2fb357', D: '#f4f4f6', L: '#ff8f1f', B: '#1f6fe5' }
 
 /** A turn on its way: the stickers slide from where they were to where the move puts them. */
 export interface Turning {

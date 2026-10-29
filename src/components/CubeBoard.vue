@@ -5,9 +5,10 @@ import { computed, useTemplateRef } from 'vue'
 import { arrowPaths } from '../board/arrows'
 import { stickerShapes } from '../board/frame'
 import { bestOption, COMMIT_PX, dragOptions, isOffBoard, nearestSlot, REACH_PX, SLOP_PX, type DragOption } from '../board/gestures'
-import { LID_PLATE, PLATE_HALF, pointsAttr, VIEW_BOX, type Point } from '../board/layout'
+import { BOARD_BOUNDS, centroid, LID_PLATE, PLATE_HALF, pointsAttr, slotCentre, VIEW_BOX, type Point } from '../board/layout'
 import { inLayer, SLOTS } from '../cube/model'
-import { facingFace } from '../cube/view'
+import { IDENTITY } from '../cube/vec'
+import { boardSlotName, facingFace } from '../cube/view'
 import { useCube } from '../composables/useCube'
 import { usePlayer } from '../composables/usePlayer'
 
@@ -15,28 +16,70 @@ const cube = useCube()
 const player = usePlayer()
 const svg = useTemplateRef<SVGSVGElement>('svg')
 
-// as wide as it can be, leaving room under it for Undo; the margin under the plate (where the bottom arrows go) is
-// given back, so Undo centres in the space under the cube itself rather than under the margin
-const UNDO_ROOM = '64px'
+// as wide as it can be, leaving a row above it for the move's name and one under it for Undo; the margins past the
+// lid and under the plate (where the arrows go) are given back, so both centre in the space beside the cube itself
+const ROOM = '128px'
 const [, vbY, vbW, vbH] = VIEW_BOX.split(' ').map(Number)
+const scale = `min(100cqw / ${vbW}, (100cqh - ${ROOM}) / ${vbH})`
 const fit = {
   aspectRatio: `${vbW} / ${vbH}`,
-  maxHeight: `calc(100cqh - ${UNDO_ROOM})`,
-  marginBottom: `calc(${PLATE_HALF - vbY - vbH} * min(100cqw / ${vbW}, (100cqh - ${UNDO_ROOM}) / ${vbH}))`,
+  maxHeight: `calc(100cqh - ${ROOM})`,
+  marginTop: `calc(${vbY - BOARD_BOUNDS.top} * ${scale})`,
+  marginBottom: `calc(${PLATE_HALF - vbY - vbH} * ${scale})`,
+}
+
+const sizeOf = (points: readonly Point[]) => {
+  const xs = points.map(p => p[0]), ys = points.map(p => p[1])
+  return [Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)]
 }
 
 const FACE_NAME = { U: 'top', D: 'bottom', R: 'right', L: 'left', F: 'front', B: 'back' } as const
 const label = computed(() =>
   `The cube as an open box: its ${FACE_NAME[facingFace(cube.view.value)]} face in the middle, four sides around it, the lid hanging open above`)
 
+const shapes = computed(() =>
+  stickerShapes(cube.state.value, cube.view.value, cube.turning.value, cube.rolling.value, cube.now.value))
+
 const stickers = computed(() => {
   const live = cube.livePreview.value
-  return stickerShapes(cube.state.value, cube.view.value, cube.turning.value, cube.rolling.value, cube.now.value).map(s => ({
+  return shapes.value.map(s => ({
     ...s,
     points: pointsAttr(s.points),
     tappable: !cube.rolling.value && s.depth === -1,
     lit: !!live && inLayer(SLOTS[s.slot].pos, live.move.layer),
   }))
+})
+
+// debug (?debug in the URL): every sticker labelled with the place it starts on, so the labels travel with the turns.
+// A place is named by its face's board name and a number, 1 to 9 in reading order as the face is seen from inside the
+// cube, with the cube held as at the start. Each side is read with its rim up, so the row along the rim is 1 2 3; the
+// lid with its hinge up (U1 U2 U3 along it); the middle with the far side up (D3 D2 D1 along its top row, since
+// looking up at it from inside mirrors it)
+const READ_UP: Record<string, Point> = { U: [0, 1], D: [0, -1], B: [0, -1], F: [0, 1], L: [-1, 0], R: [1, 0] }
+const START_NAMES = (() => {
+  const names: string[] = []
+  for (const face of 'UDFBLR') {
+    const [ux, uy] = READ_UP[face], up = ([x, y]: Point) => ux * x + uy * y, right = ([x, y]: Point) => uy * x - ux * y
+    const rows = SLOTS.filter(s => boardSlotName(IDENTITY, s)[0] === face)
+      .map(s => ({ slot: s.index, at: slotCentre(IDENTITY, s.index) }))
+      .sort((a, b) => up(b.at) - up(a.at))
+    for (let r = 0; r < 3; r++)
+      rows.slice(3 * r, 3 * r + 3).sort((a, b) => right(a.at) - right(b.at)).forEach((p, c) => names[p.slot] = face + (3 * r + c + 1))
+  }
+  return names
+})()
+const debug = new URLSearchParams(location.search).has('debug')
+const labels = computed(() => {
+  if (!debug) return []
+  return shapes.value.map(s => {
+    const [x, y] = centroid(s.points)
+    const [w, h] = sizeOf(s.points)
+    // on the left and right sides the stickers are tall and thin, so the label runs along them
+    const upright = h > w * 1.3
+    const [across, along] = upright ? [w, h] : [h, w]
+    const turn = upright ? (x > 0 ? 90 : -90) : 0
+    return { slot: s.slot, x, y, turn, text: START_NAMES[cube.state.value[s.slot]], size: Math.min(11, along / 2.6, across / 1.4) }
+  })
 })
 
 const arrows = computed(() => {
@@ -124,6 +167,10 @@ function endDrag(e: PointerEvent, commit: boolean) {
       <polygon v-if="s.depth > 0" :points="s.points" class="shade" :opacity="0.05 * s.depth" />
     </template>
 
+    <text
+      v-for="l in labels" :key="'label' + l.slot" class="label"
+      :x="l.x" :y="l.y" :font-size="l.size" :transform="l.turn ? `rotate(${l.turn} ${l.x} ${l.y})` : undefined"
+    >{{ l.text }}</text>
 
     <template v-if="arrows">
       <path v-for="(d, i) in arrows.paths" :key="'halo' + i" :d="d" class="arrow-halo" :opacity="arrows.alpha" />
@@ -140,6 +187,7 @@ svg { flex: none; width: 100%; display: block; touch-action: none; user-select: 
 .sticker.tappable { cursor: pointer; }
 .sticker.lit { stroke: var(--accent); stroke-width: 3; }
 .shade { fill: #000; pointer-events: none; }
+.label { fill: #000; stroke: rgba(255,255,255,0.85); stroke-width: 2.4; paint-order: stroke; font-family: var(--round); font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .arrowhead { fill: var(--accent); }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .arrow-halo { fill: none; stroke: var(--halo); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }

@@ -8,7 +8,7 @@ export const ARROW_FADE_MS = 450
 /** The move's letter shows this long after it lands. */
 export const LETTER_MS = 350
 /** Undo shows this long from the moment a turn is made. */
-export const UNDO_MS = 1000
+export const UNDO_MS = 2000
 
 export const easeInOut = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 

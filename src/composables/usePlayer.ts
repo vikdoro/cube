@@ -5,7 +5,7 @@ import { useCube } from './useCube'
 import { usePractice } from './usePractice'
 
 /**
- * The player's own turns, and undoing them. Undo shows under the board the moment a turn is made, for a second. Each tap
+ * The player's own turns, and undoing them. Undo shows under the board the moment a turn is made, for two seconds. Each tap
  * turns the last one back, and Undo shows again for the one before.
  */
 const cube = useCube()

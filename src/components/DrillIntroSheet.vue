@@ -6,7 +6,12 @@ import { drillTitle, plural } from '../text'
 import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
-const { drill, nextPuzzle, resetToSolved } = usePractice()
+const { drill, nextPuzzle, retry, resetToSolved } = usePractice()
+
+function startOver() {
+  retry()
+  sheets.close()
+}
 </script>
 
 <template>
@@ -20,10 +25,13 @@ const { drill, nextPuzzle, resetToSolved } = usePractice()
       </ol>
       <div class="actions">
         <button class="btn primary big" autofocus @click="sheets.close">{{ sheets.introMidway.value ? 'Continue' : 'Start' }}</button>
-        <div v-if="sheets.introMidway.value" class="split">
-          <button class="btn" @click="nextPuzzle">New puzzle</button>
-          <button class="btn" @click="resetToSolved">Stop practising</button>
-        </div>
+        <template v-if="sheets.introMidway.value">
+          <div class="split">
+            <button class="btn" :disabled="drill.done" @click="startOver">Start over</button>
+            <button class="btn" @click="nextPuzzle">New puzzle</button>
+          </div>
+          <button class="btn plain" @click="resetToSolved">Stop practising</button>
+        </template>
       </div>
     </template>
   </BottomSheet>

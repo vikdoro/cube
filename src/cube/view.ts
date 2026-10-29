@@ -1,4 +1,4 @@
-import { FACE_NORMAL, FACES, moveName, type Face, type Move } from './model'
+import { FACE_NORMAL, FACES, inverse, moveName, type Face, type Move, type Slot } from './model'
 import { equals, quarterTurn, thenApply, transform, type Mat3, type Vec3 } from './vec'
 
 /**
@@ -17,13 +17,38 @@ const boardFace = (view: View, face: Face): Face =>
   FACES.find(f => equals(FACE_NORMAL[f], toBoard(view, FACE_NORMAL[face])))!
 
 /**
- * Moves are named by where their face sits on the board, not by the cube's own faces: the middle is always U,
- * the far side (top of the page) B, the near side F and the lid D. Rolling the cube renames its moves.
+ * Moves are named by where their face sits on the board, not by the cube's own faces, as if looking down into the
+ * cube from above: the middle is always D, the lid U, the far side (top of the page) B and the near side F. Every face
+ * is seen from inside the cube, so a turn that looks clockwise on the board is anticlockwise in the usual notation
+ * and gets a prime. Rolling the cube renames its moves.
  */
+const BOARD_NAME: Record<Face, Face> = { U: 'D', D: 'U', R: 'R', L: 'L', F: 'F', B: 'B' }
+
 export function boardMoveName(view: View, move: Move) {
   const layer = move.layer
   if (layer === 'M' || layer === 'E' || layer === 'S') return moveName(move)
-  return moveName({ ...move, layer: boardFace(view, layer) })
+  return moveName(inverse({ ...move, layer: BOARD_NAME[boardFace(view, layer)] }))
+}
+
+/** The move a board name stands for: boardMoveName the other way round. */
+export function boardMove(view: View, name: Face, amount: Move['amount']): Move {
+  const layer = FACES.find(f => BOARD_NAME[boardFace(view, f)] === name)!
+  return inverse({ layer, amount })
+}
+
+// the board name of each direction on the board, for naming the places on it
+const AT: [Face, Face][] = [['U', 'D'], ['B', 'F'], ['L', 'R']] // [negative, positive] along board y, z, x
+const AXES = [1, 2, 0] // name pieces U/D first, then F/B, then R/L
+
+/**
+ * A fixed place on the board by its board names, the face it is on first, then the rest of its piece: DFR is the
+ * corner sticker on the middle face nearest you on the right, RDF the same corner's sticker on the right side.
+ */
+export function boardSlotName(view: View, slot: Slot) {
+  const pos = toBoard(view, slot.pos), n = toBoard(view, slot.normal)
+  const name = (axis: number, sign: number) => AT[AXES.indexOf(axis)][sign > 0 ? 1 : 0]
+  const own = AXES.find(a => n[a] !== 0)!
+  return name(own, n[own]) + AXES.filter(a => a !== own && pos[a] !== 0).map(a => name(a, pos[a])).join('')
 }
 
 /**
