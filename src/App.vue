@@ -13,6 +13,7 @@ import DrillIntroSheet from './components/DrillIntroSheet.vue'
 import HintButton from './components/HintButton.vue'
 import MoveBadge from './components/MoveBadge.vue'
 import PracticeSheet from './components/PracticeSheet.vue'
+import StartOverSheet from './components/StartOverSheet.vue'
 import TopBar from './components/TopBar.vue'
 import UndoButton from './components/UndoButton.vue'
 
@@ -51,6 +52,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeyDown))
   <PracticeSheet />
   <DrillIntroSheet />
   <DrillDoneSheet />
+  <StartOverSheet />
 </template>
 
 <style scoped>

@@ -14,6 +14,8 @@ const practice = usePractice()
 /** The player's turns that can still be undone, newest last. */
 const undoable: Move[] = []
 const undoOffered = shallowRef(false)
+/** How many turns the player has made since the cube was last reset, undoing included. */
+const turnsMade = shallowRef(0)
 let timers: ReturnType<typeof setTimeout>[] = []
 
 function hideUndo() {
@@ -32,6 +34,7 @@ function offerUndo() {
 function playerTurn(move: Move, undoing = false) {
   hideUndo()
   if (!undoing) undoable.push(move)
+  turnsMade.value++
   practice.recordTurn(move)
   cube.turn(move, true)
   offerUndo()
@@ -42,8 +45,8 @@ function undo() {
   playerTurn(inverse(undoable.pop()!), true)
 }
 
-cube.onReset(() => { undoable.length = 0; hideUndo() })
+cube.onReset(() => { undoable.length = 0; turnsMade.value = 0; hideUndo() })
 
 export function usePlayer() {
-  return { undoOffered, playerTurn, undo, hideUndo }
+  return { undoOffered, turnsMade, playerTurn, undo, hideUndo }
 }

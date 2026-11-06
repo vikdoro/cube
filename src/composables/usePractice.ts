@@ -2,6 +2,7 @@ import { shallowRef } from 'vue'
 import { TURN_MS } from '../board/motion'
 import { extendPath, pathFromSolved, randomTurns, type DrillKind } from '../cube/drills'
 import { applyMoves, inverse, isSolved, SOLVED, type CubeState, type Move } from '../cube/model'
+import { IDENTITY } from '../cube/vec'
 import { loadPractice, savePractice } from '../storage'
 import { useCube } from './useCube'
 import { useSheets } from './useSheets'
@@ -73,6 +74,12 @@ function resetToSolved() {
   cube.reset(SOLVED)
 }
 
+/** Start over from the logo: a solved cube, held as at the start. */
+function startOver() {
+  resetToSolved()
+  cube.setView(IDENTITY)
+}
+
 /** Count one of the player's turns towards the drill. Called before the turn is made. */
 function recordTurn(move: Move) {
   const d = drill.value
@@ -97,7 +104,7 @@ cube.onTurnApplied(() => {
 export function usePractice() {
   return {
     drill,
-    startUndo, nextPuzzle, retry, stop, resetToSolved, recordTurn, hint,
+    startUndo, nextPuzzle, retry, stop, resetToSolved, startOver, recordTurn, hint,
     /** The level to offer: the one being played, or the last one played. */
     currentLevel: () => drill.value?.level ?? loadPractice().level ?? 1,
   }
