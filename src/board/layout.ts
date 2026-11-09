@@ -84,12 +84,22 @@ export const centroid = (points: Polygon): Point => [
   points.reduce((a, p) => a + p[1], 0) / points.length,
 ]
 
-/** Move every corner d towards the middle, leaving a gap between neighbouring stickers. */
+/**
+ * Move every edge d inwards, leaving a gap between neighbouring stickers. Each edge stays parallel to where it was,
+ * so the gaps along a line running through several stickers stay straight.
+ */
 function shrink(points: Polygon, d: number): Polygon {
-  const [cx, cy] = centroid(points)
-  return points.map(([x, y]) => {
-    const l = Math.hypot(x - cx, y - cy) || 1
-    return [x - (x - cx) / l * d, y - (y - cy) / l * d]
+  const n = points.length
+  const area = points.reduce((a, [x, y], i) => { const [x2, y2] = points[(i + 1) % n]; return a + x * y2 - x2 * y }, 0)
+  const s = Math.sign(area) || 1
+  // the inward unit normal of the edge from corner i to corner i + 1
+  const normals = points.map(([x, y], i) => {
+    const [x2, y2] = points[(i + 1) % n], l = Math.hypot(x2 - x, y2 - y) || 1
+    return [-(y2 - y) / l * s, (x2 - x) / l * s]
+  })
+  return points.map(([x, y], i) => {
+    const a = normals[(i + n - 1) % n], b = normals[i], k = d / (1 + a[0] * b[0] + a[1] * b[1])
+    return [x + (a[0] + b[0]) * k, y + (a[1] + b[1]) * k]
   })
 }
 
@@ -110,7 +120,7 @@ export function placements(view: View): readonly Placement[] {
   const key = view.flat().join()
   let result = cache.get(key)
   if (!result) {
-    result = SLOTS.map(s => { const p = place(view, s); return { ...p, points: shrink(p.points, 3.4) } })
+    result = SLOTS.map(s => { const p = place(view, s); return { ...p, points: shrink(p.points, 2.1) } })
     cache.set(key, result)
   }
   return result
