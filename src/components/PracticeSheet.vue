@@ -1,25 +1,37 @@
 <script setup lang="ts">
 import { MAX_LEVEL, usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
-import { plural } from '../text'
+import { levelName } from '../text'
 import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
-const { drill, startUndo, resetToSolved, currentLevel } = usePractice()
+const { drill, start, resetToSolved, currentLevel } = usePractice()
 </script>
 
 <template>
   <BottomSheet :open="sheets.current.value === 'practice'" title="Practice" @close="sheets.close">
-    <p>Short puzzles that start close to solved, so every attempt ends with a solved cube.</p>
+    <p>Short puzzles, each with one goal. Start at 1 and add one when it feels easy.</p>
     <div class="pick">
       <b>Undo the scramble</b>
-      <p>The cube was turned a few times. Turn it back. Start at 1 and add one when it feels easy.</p>
+      <p>The cube was turned a few times from solved. Turn it back.</p>
       <div class="chips">
         <button
-          v-for="n in MAX_LEVEL" :key="n" class="btn level"
-          :aria-pressed="n === currentLevel()" :aria-label="`Undo ${plural(n, 'move')}`"
-          @click="startUndo(n)"
+          v-for="n in MAX_LEVEL.undo" :key="n" class="btn level"
+          :aria-pressed="n === currentLevel('undo')" :aria-label="`Undo ${levelName('undo', n)}`"
+          @click="start('undo', n)"
         >{{ n }}</button>
+      </div>
+    </div>
+    <div class="pick">
+      <b>Make the white lily</b>
+      <p>The first step of solving: the four white edges around the yellow centre. Pick how many petals are missing, or start from a full scramble.</p>
+      <div class="chips">
+        <button
+          v-for="n in MAX_LEVEL.lily" :key="n" class="btn level"
+          :class="{ wide: n === MAX_LEVEL.lily }"
+          :aria-pressed="n === currentLevel('lily')" :aria-label="`White lily, ${levelName('lily', n)}`"
+          @click="start('lily', n)"
+        >{{ n === MAX_LEVEL.lily ? 'Full scramble' : n }}</button>
       </div>
     </div>
     <button v-if="drill" class="btn plain" @click="resetToSolved">Stop practising</button>
@@ -29,5 +41,6 @@ const { drill, startUndo, resetToSolved, currentLevel } = usePractice()
 <style scoped>
 .pick { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--bg); }
 .level { min-width: 44px; padding: 0; }
+.level.wide { padding: 0 14px; }
 .level[aria-pressed="true"] { background: var(--accent); color: #fff; }
 </style>

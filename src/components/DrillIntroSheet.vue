@@ -17,7 +17,14 @@ function startOver() {
 <template>
   <BottomSheet :open="sheets.current.value === 'intro'" :title="drill ? drillTitle(drill) : ''" @close="sheets.close">
     <template v-if="drill">
-      <ol class="steps">
+      <ol v-if="drill.kind === 'lily'" class="steps">
+        <li><span>Bring the four <b>white edges</b> round the <b>yellow centre</b>, white facing the same way as the yellow. That is the lily. The corners don't matter.</span></li>
+        <li><span v-if="drill.level < 4">{{ drill.level === 1 ? 'One petal is' : `${drill.level} petals are` }} still missing. It can be done in {{ plural(drill.par ?? 0, 'turn') }}.</span>
+          <span v-else>The cube is fully scrambled. It can be done in {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
+        <li><span>Turning the yellow face moves the petals round without losing them. Turn it first to keep a petal out of the way of the next one.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
+      </ol>
+      <ol v-else class="steps">
         <li><span>The cube was turned <b>{{ plural(drill.level, 'time') }}</b> from solved. Turn it back.</span></li>
         <li><span>Each of your turns can cancel one of them, so {{ plural(drill.level, 'turn') }} is the shortest way. Taking more is fine.</span></li>
         <li><span>A wrong turn is just one more to undo. You can't get stuck.</span></li>

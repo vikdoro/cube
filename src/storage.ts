@@ -4,6 +4,8 @@ import type { DrillKind } from './cube/drills'
 export interface PracticeMemory {
   /** The last "undo" level played. */
   level?: number
+  /** The last "lily" level played. */
+  lilyLevel?: number
   /** Drills whose steps have been explained once already. */
   seen?: Partial<Record<DrillKind, boolean>>
 }

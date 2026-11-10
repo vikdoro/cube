@@ -6,7 +6,7 @@ import { useCube } from '../composables/useCube'
 import { usePlayer } from '../composables/usePlayer'
 import { usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
-import { drillTitle, plural } from '../text'
+import { doneTitle, drillTitle, plural } from '../text'
 
 const cube = useCube()
 const { drill, startOver } = usePractice()
@@ -25,7 +25,7 @@ const canScramble = computed(() => isSolved(cube.state.value) && !drill.value)
 const count = computed(() => {
   const d = drill.value
   if (!d) return ''
-  if (d.done) return `Solved in ${plural(d.moves, 'move')}`
+  if (d.done) return doneTitle(d)
   return plural(d.moves, 'move') + (d.hints ? ` · ${plural(d.hints, 'hint')}` : '')
 })
 </script>

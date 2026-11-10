@@ -2,7 +2,7 @@ import { computed, shallowRef } from 'vue'
 import type { Rolling, Turning } from '../board/frame'
 import { ARROW_FADE_MS, ARROW_HOLD_MS, LETTER_MS, prefersReducedMotion, ROLL_MS, TURN_MS } from '../board/motion'
 import { applyMove, SLOTS, SOLVED, type CubeState, type Move } from '../cube/model'
-import { IDENTITY } from '../cube/vec'
+import { IDENTITY, type Vec3 } from '../cube/vec'
 import { boardMoveName, rollTowards, toBoard, type View } from '../cube/view'
 
 /**
@@ -141,8 +141,12 @@ function setView(next: View) {
 
 /** Roll the cube so the face holding this slot comes to the middle. */
 function rollToSlot(slot: number) {
+  roll(toBoard(view.value, SLOTS[slot].normal))
+}
+
+/** Roll the cube so the face whose normal points along `n` on the board comes to the middle. */
+function roll(n: Vec3) {
   if (busy.value) return
-  const n = toBoard(view.value, SLOTS[slot].normal)
   if (n[1] === 1) return // already in the middle
   const from = view.value
   view.value = rollTowards(from, n)
@@ -170,7 +174,7 @@ function setPreview(next: Preview | null) {
 export function useCube() {
   return {
     state, view, turning, rolling, preview, now, busy, livePreview, arrows, badge,
-    turn, reset, setView, rollToSlot, showArrows, hideArrows, setPreview,
+    turn, reset, setView, roll, rollToSlot, showArrows, hideArrows, setPreview,
     /** Called as each turn starts, once the state has changed. */
     onTurnApplied: (fn: TurnListener) => { applied.push(fn) },
     /** Called when each turn has finished animating. */

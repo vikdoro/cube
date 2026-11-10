@@ -1,6 +1,7 @@
 import { shallowRef } from 'vue'
 import { TURN_MS } from '../board/motion'
-import { extendPath, pathFromSolved, randomTurns, type DrillKind } from '../cube/drills'
+import { extendPath, pathFromSolved, randomTurns, scramble, type DrillKind } from '../cube/drills'
+import { isLily, lilyDistance, lilyHint, lilyPuzzle } from '../cube/lily'
 import { applyMoves, inverse, isSolved, SOLVED, type CubeState, type Move } from '../cube/model'
 import { IDENTITY } from '../cube/vec'
 import { loadPractice, savePractice } from '../storage'
@@ -10,10 +11,10 @@ import { useSheets } from './useSheets'
 /** The drill in progress, if any. Replaced as a whole on every change. */
 export interface Drill {
   kind: DrillKind
-  /** How many turns the cube was scrambled by. */
+  /** Undo: how many turns the cube was scrambled by. Lily: how many petals are left to place, 4 for a full scramble. */
   level: number
   start: CubeState
-  /** The turns from solved to the start, so the hint can undo them one by one. */
+  /** Undo: the turns from solved to the start, so the hint can undo them one by one. */
   startPath: readonly Move[]
   /** The fewest turns it can be solved in, when known. */
   par: number | null
@@ -22,11 +23,14 @@ export interface Drill {
   /** A hint was shown since the last turn. */
   hintShown: boolean
   done: boolean
-  /** The turns from solved to the current position, kept up to date as the player turns. */
+  /** Undo: the turns from solved to the current position, kept up to date as the player turns. */
   path: readonly Move[]
 }
 
-export const MAX_LEVEL = 5
+export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4 }
+
+/** Whether the drill's goal is reached. */
+const isGoal = (kind: DrillKind, state: CubeState) => kind === 'lily' ? isLily(state) : isSolved(state)
 
 const cube = useCube()
 const sheets = useSheets()
@@ -40,20 +44,37 @@ function startUndo(level = 1) {
   do start = applyMoves(SOLVED, randomTurns(level)); while (isSolved(start))
   savePractice({ level })
   const startPath = pathFromSolved(start, level)
-  drill.value = { kind: 'undo', level, start, startPath, par: level, path: startPath, ...fresh }
-  cube.reset(start)
+  begin({ kind: 'undo', level, start, startPath, par: level, path: startPath, ...fresh })
+}
+
+/** Make the white lily, with a few petals left to place or from a full scramble. Yellow starts in the middle. */
+function startLily(level = 1) {
+  const start = lilyPuzzle(() => scramble(SOLVED), level)
+  savePractice({ lilyLevel: level })
+  begin({ kind: 'lily', level, start, startPath: [], par: lilyDistance(start), path: [], ...fresh })
+  cube.setView(IDENTITY)
+}
+
+function begin(next: Drill) {
+  drill.value = next
+  cube.reset(next.start)
   sheets.close()
   // the steps are explained once, before the first puzzle; after that they are behind "Steps"
   const seen = loadPractice().seen ?? {}
-  if (!seen.undo) {
-    savePractice({ seen: { ...seen, undo: true } })
+  if (!seen[next.kind]) {
+    savePractice({ seen: { ...seen, [next.kind]: true } })
     sheets.openIntro(false)
   }
 }
 
+const START: Record<DrillKind, (level: number) => void> = { undo: startUndo, lily: startLily }
+
+/** Start a drill at a level. */
+const start = (kind: DrillKind, level: number) => START[kind](level)
+
 function nextPuzzle() {
   const d = drill.value
-  if (d) startUndo(d.level)
+  if (d) start(d.kind, d.level)
 }
 
 function retry() {
@@ -89,14 +110,16 @@ function recordTurn(move: Move) {
 
 function hint() {
   const d = drill.value
-  if (!d || d.done || cube.busy.value || !d.path.length) return
+  if (!d || d.done || cube.busy.value) return
+  const move = d.kind === 'lily' ? lilyHint(cube.state.value) : d.path.length ? inverse(d.path[d.path.length - 1]) : null
+  if (!move) return
   drill.value = { ...d, hints: d.hints + 1, hintShown: true }
-  cube.showArrows(inverse(d.path[d.path.length - 1]), 900) // hold the arrows a little longer than after a turn
+  cube.showArrows(move, 900) // hold the arrows a little longer than after a turn
 }
 
 cube.onTurnApplied(() => {
   const d = drill.value
-  if (!d || d.done || !isSolved(cube.state.value)) return
+  if (!d || d.done || !isGoal(d.kind, cube.state.value)) return
   drill.value = { ...d, done: true }
   setTimeout(() => { if (drill.value?.done) sheets.open('done') }, TURN_MS + 300) // let the last turn land first
 })
@@ -104,8 +127,12 @@ cube.onTurnApplied(() => {
 export function usePractice() {
   return {
     drill,
-    startUndo, nextPuzzle, retry, stop, resetToSolved, startOver, recordTurn, hint,
+    start, nextPuzzle, retry, stop, resetToSolved, startOver, recordTurn, hint,
     /** The level to offer: the one being played, or the last one played. */
-    currentLevel: () => drill.value?.level ?? loadPractice().level ?? 1,
+    currentLevel: (kind: DrillKind) => {
+      if (drill.value?.kind === kind) return drill.value.level
+      const memory = loadPractice()
+      return (kind === 'lily' ? memory.lilyLevel : memory.level) ?? 1
+    },
   }
 }
