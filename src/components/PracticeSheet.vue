@@ -34,6 +34,18 @@ const { drill, start, resetToSolved, currentLevel } = usePractice()
         >{{ n === MAX_LEVEL.lily ? 'Full scramble' : n }}</button>
       </div>
     </div>
+    <div class="pick">
+      <b>Make the white cross</b>
+      <p>The petals drop onto the lid, each on the side of its own colour. Pick how many petals are still to drop, or start from a full scramble.</p>
+      <div class="chips">
+        <button
+          v-for="n in MAX_LEVEL.cross" :key="n" class="btn level"
+          :class="{ wide: n === MAX_LEVEL.cross }"
+          :aria-pressed="n === currentLevel('cross')" :aria-label="`White cross, ${levelName('cross', n)}`"
+          @click="start('cross', n)"
+        >{{ n === MAX_LEVEL.cross ? 'Full scramble' : n }}</button>
+      </div>
+    </div>
     <button v-if="drill" class="btn plain" @click="resetToSolved">Stop practising</button>
   </BottomSheet>
 </template>

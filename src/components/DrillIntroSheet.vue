@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // How the drill works: shown before its first puzzle, and later from "Steps".
-import { usePractice } from '../composables/usePractice'
+import { MAX_LEVEL, usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
 import { drillTitle, plural } from '../text'
 import BottomSheet from './BottomSheet.vue'
@@ -22,6 +22,20 @@ function startOver() {
         <li><span v-if="drill.level < 4">{{ drill.level === 1 ? 'One petal is' : `${drill.level} petals are` }} still missing. It can be done in {{ plural(drill.par ?? 0, 'turn') }}.</span>
           <span v-else>The cube is fully scrambled. It can be done in {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
         <li><span>Turning the yellow face moves the petals round without losing them. Turn it first to keep a petal out of the way of the next one.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
+      </ol>
+      <ol v-else-if="drill.kind === 'cross' && drill.level < MAX_LEVEL.cross" class="steps">
+        <li><span>Move the white petals from round the yellow centre to the <b>lid</b>, each on the side of its own colour. That is the white cross.</span></li>
+        <li><span>Each petal has a second colour, on the side next to it. Turn the <b>yellow face</b> until that colour is next to the centre of the same colour.</span></li>
+        <li><span>Turn that side <b>twice</b>. The petal drops onto the lid.</span></li>
+        <li><span>{{ drill.level === 1 ? 'One petal is' : `${drill.level} petals are` }} still to drop. The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
+      </ol>
+      <ol v-else-if="drill.kind === 'cross'" class="steps">
+        <li><span>Make the <b>white cross</b>: the four white edges on the lid, round the white centre, each on the side of its own colour.</span></li>
+        <li><span>First make the lily: bring the white edges round the yellow centre.</span></li>
+        <li><span>Each petal has a second colour, on the side next to it. Turn the <b>yellow face</b> until that colour is next to the centre of the same colour.</span></li>
+        <li><span>Turn that side <b>twice</b>. The petal drops onto the lid.</span></li>
         <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
       </ol>
       <ol v-else class="steps">

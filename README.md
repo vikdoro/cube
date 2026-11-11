@@ -6,7 +6,10 @@ hanging open above like a lid. Drag a sticker to turn its row or ring; tap any
 side to roll the cube so that side is in the middle.
 
 **Practice** scrambles the cube by 1–5 turns for you to turn back ("Undo N
-moves"), so every puzzle ends with a solved cube. The guided course (the
+moves"), so every puzzle ends with a solved cube. Two more drills build the
+first step of the beginner method: the white lily (the four white edges round
+the yellow centre) and the white cross (the petals dropped onto the white
+face, each on the side of its own colour). The guided course (the
 beginner method taught backwards) is parked on the `learning-full` branch.
 
 Vue 3 (Composition API) + TypeScript + Vite, deployed as static assets on
@@ -33,7 +36,7 @@ up, so its top row reads D3 D2 D1.
 
 | Folder | What lives there |
 | --- | --- |
-| `src/cube/` | The cube itself, pure and stateless. `model.ts`: slots, moves as permutations, solved check. `view.ts`: how the cube is held on the board, rolling it, board-relative move names. `drills.ts`: building and hinting the undo puzzles. |
+| `src/cube/` | The cube itself, pure and stateless. `model.ts`: slots, moves as permutations, solved check. `view.ts`: how the cube is held on the board, rolling it, board-relative move names. `drills.ts`: building and hinting the undo puzzles. `lily.ts` and `cross.ts`: the white lily and white cross drills, their goals, hints and puzzles. |
 | `src/board/` | The flat board, pure geometry. `layout.ts`: where each sticker is drawn. `arrows.ts`: the turn arrows. `gestures.ts`: reading a drag as a turn. `frame.ts`: stickers at a moment of an animation. `motion.ts`: timings. |
 | `src/composables/` | App state, one shared instance each. `useCube`: the cube, its turn queue and animation clock. `usePlayer`: the player's turns and undo. `usePractice`: the drill in progress. `useSheets`: which bottom sheet is open. |
 | `src/components/` | The UI: `CubeBoard` (SVG + dragging), `TopBar` (which shows the drill in progress), `UndoButton` and `HintButton` under the board, and the sheets built on `BottomSheet` (`PracticeSheet`, `DrillIntroSheet`, `DrillDoneSheet`). |

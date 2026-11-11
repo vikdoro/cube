@@ -6,6 +6,8 @@ export interface PracticeMemory {
   level?: number
   /** The last "lily" level played. */
   lilyLevel?: number
+  /** The last "cross" level played. */
+  crossLevel?: number
   /** Drills whose steps have been explained once already. */
   seen?: Partial<Record<DrillKind, boolean>>
 }

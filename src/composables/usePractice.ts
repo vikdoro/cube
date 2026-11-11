@@ -1,6 +1,7 @@
 import { shallowRef } from 'vue'
 import { TURN_MS } from '../board/motion'
 import { extendPath, pathFromSolved, randomTurns, scramble, type DrillKind } from '../cube/drills'
+import { crossHint, crossPuzzle, isCross, routineTurns } from '../cube/cross'
 import { isLily, lilyDistance, lilyHint, lilyPuzzle } from '../cube/lily'
 import { applyMoves, inverse, isSolved, SOLVED, type CubeState, type Move } from '../cube/model'
 import { IDENTITY } from '../cube/vec'
@@ -11,12 +12,15 @@ import { useSheets } from './useSheets'
 /** The drill in progress, if any. Replaced as a whole on every change. */
 export interface Drill {
   kind: DrillKind
-  /** Undo: how many turns the cube was scrambled by. Lily: how many petals are left to place, 4 for a full scramble. */
+  /**
+   * Undo: how many turns the cube was scrambled by. Lily: how many petals are left to place, 4 for a full scramble.
+   * Cross: how many petals are left to drop, 5 for a full scramble.
+   */
   level: number
   start: CubeState
   /** Undo: the turns from solved to the start, so the hint can undo them one by one. */
   startPath: readonly Move[]
-  /** The fewest turns it can be solved in, when known. */
+  /** The fewest turns it can be solved in, when known. For the cross, the turns the routine takes. */
   par: number | null
   moves: number
   hints: number
@@ -27,10 +31,10 @@ export interface Drill {
   path: readonly Move[]
 }
 
-export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4 }
+export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4, cross: 5 }
 
 /** Whether the drill's goal is reached. */
-const isGoal = (kind: DrillKind, state: CubeState) => kind === 'lily' ? isLily(state) : isSolved(state)
+const GOAL: Record<DrillKind, (state: CubeState) => boolean> = { undo: isSolved, lily: isLily, cross: isCross }
 
 const cube = useCube()
 const sheets = useSheets()
@@ -55,6 +59,14 @@ function startLily(level = 1) {
   cube.setView(IDENTITY)
 }
 
+/** Make the white cross, with a few petals left to drop or from a full scramble. Yellow starts in the middle. */
+function startCross(level = 1) {
+  const start = crossPuzzle(() => scramble(SOLVED), level)
+  savePractice({ crossLevel: level })
+  begin({ kind: 'cross', level, start, startPath: [], par: level < MAX_LEVEL.cross ? routineTurns(start) : null, path: [], ...fresh })
+  cube.setView(IDENTITY)
+}
+
 function begin(next: Drill) {
   drill.value = next
   cube.reset(next.start)
@@ -67,7 +79,7 @@ function begin(next: Drill) {
   }
 }
 
-const START: Record<DrillKind, (level: number) => void> = { undo: startUndo, lily: startLily }
+const START: Record<DrillKind, (level: number) => void> = { undo: startUndo, lily: startLily, cross: startCross }
 
 /** Start a drill at a level. */
 const start = (kind: DrillKind, level: number) => START[kind](level)
@@ -108,10 +120,17 @@ function recordTurn(move: Move) {
   drill.value = { ...d, moves: d.moves + 1, hintShown: false, path: extendPath(d.path, move) }
 }
 
+/** The next turn to suggest for a drill, if any. */
+const HINT: Record<DrillKind, (d: Drill) => Move | null> = {
+  undo: d => d.path.length ? inverse(d.path[d.path.length - 1]) : null,
+  lily: () => lilyHint(cube.state.value),
+  cross: () => crossHint(cube.state.value),
+}
+
 function hint() {
   const d = drill.value
   if (!d || d.done || cube.busy.value) return
-  const move = d.kind === 'lily' ? lilyHint(cube.state.value) : d.path.length ? inverse(d.path[d.path.length - 1]) : null
+  const move = HINT[d.kind](d)
   if (!move) return
   drill.value = { ...d, hints: d.hints + 1, hintShown: true }
   cube.showArrows(move, 900) // hold the arrows a little longer than after a turn
@@ -119,7 +138,7 @@ function hint() {
 
 cube.onTurnApplied(() => {
   const d = drill.value
-  if (!d || d.done || !isGoal(d.kind, cube.state.value)) return
+  if (!d || d.done || !GOAL[d.kind](cube.state.value)) return
   drill.value = { ...d, done: true }
   setTimeout(() => { if (drill.value?.done) sheets.open('done') }, TURN_MS + 300) // let the last turn land first
 })
@@ -132,7 +151,7 @@ export function usePractice() {
     currentLevel: (kind: DrillKind) => {
       if (drill.value?.kind === kind) return drill.value.level
       const memory = loadPractice()
-      return (kind === 'lily' ? memory.lilyLevel : memory.level) ?? 1
+      return ({ undo: memory.level, lily: memory.lilyLevel, cross: memory.crossLevel }[kind]) ?? 1
     },
   }
 }

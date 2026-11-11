@@ -12,7 +12,9 @@ const { drill, nextPuzzle, start } = usePractice()
 const summary = computed(() => {
   const d = drill.value
   if (!d) return ''
-  const par = d.par !== null ? (d.moves <= d.par ? 'That is the shortest way. ' : `It can be done in ${d.par}. `) : ''
+  const par = d.par === null ? '' : d.kind === 'cross'
+    ? (d.moves <= d.par ? 'No wasted turns. ' : `The routine takes ${d.par}. `)
+    : (d.moves <= d.par ? 'That is the shortest way. ' : `It can be done in ${d.par}. `)
   return par + (d.hints ? `You used ${plural(d.hints, 'hint')}.` : 'No hints.')
 })
 
@@ -28,7 +30,7 @@ const levelUp = computed(() => {
     <p>{{ summary }}</p>
     <div class="actions">
       <button class="btn primary big" autofocus @click="nextPuzzle">Next puzzle</button>
-      <button v-if="drill && levelUp" class="btn big" @click="start(drill.kind, levelUp)">Try {{ levelUp === 4 && drill.kind === 'lily' ? 'a ' : '' }}{{ levelName(drill.kind, levelUp) }}</button>
+      <button v-if="drill && levelUp" class="btn big" @click="start(drill.kind, levelUp)">Try {{ levelUp === MAX_LEVEL[drill.kind] && drill.kind !== 'undo' ? 'a ' : '' }}{{ levelName(drill.kind, levelUp) }}</button>
       <button class="btn plain" @click="sheets.open('practice')">Back to Practice</button>
     </div>
   </BottomSheet>
