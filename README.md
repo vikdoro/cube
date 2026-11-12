@@ -20,10 +20,34 @@ Cloudflare Workers.
 ```sh
 npm install
 npm run dev      # http://localhost:5173
-npm test         # vitest: cube model, drills, board geometry and drag reading
+npm test         # vitest: drills, app state and the engine boundary
 npm run build    # type-check + dist/
 npm run deploy   # build + wrangler deploy
 ```
+
+## The engine
+
+The cube itself (model, notation, the board and its Vue component) is
+`@tadacube/engine`, which lives in its own private repo,
+[vikdoro/tadacube-engine](https://github.com/vikdoro/tadacube-engine). The app
+installs it as a GitHub dependency pinned to a tag,
+`"@tadacube/engine": "github:vikdoro/tadacube-engine#v0.1.0"`, and the lockfile
+pins that to a commit. `npm install` fetches it over SSH, so the machine needs
+GitHub access to the repo. The package ships TypeScript source, which Vite
+compiles into the app's bundle, so a deploy carries whichever engine version is
+installed. `src/boundaries.test.ts` checks that the installed engine holds no
+app code and that the app imports it only through its entry points.
+
+To change the engine:
+
+1. Commit and push in the engine repo (`~/dev/tadacube-engine`).
+2. Tag a release: `git tag v0.1.1 && git push --tags`.
+3. Here, bump the `#v0.1.1` in `package.json`, run `npm install`, then
+   `npm run deploy`.
+
+To work on both at once without tagging each change, run
+`npm link ../tadacube-engine` here. A plain `npm install` brings back the
+pinned version.
 
 Add `?debug` to the URL (e.g. http://localhost:5173/?debug) to label every
 sticker with the place it starts on, so the labels travel with the turns and
