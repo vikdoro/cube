@@ -46,6 +46,30 @@ const { drill, start, resetToSolved, currentLevel } = usePractice()
         >{{ n === MAX_LEVEL.cross ? 'Full scramble' : n }}</button>
       </div>
     </div>
+    <div class="pick">
+      <b>Put in the white corners</b>
+      <p>With white in the middle, the corners go in between the cross's edges, which finishes the white face. Pick how many corners are still to place, or start from a full scramble.</p>
+      <div class="chips">
+        <button
+          v-for="n in MAX_LEVEL.corners" :key="n" class="btn level"
+          :class="{ wide: n === MAX_LEVEL.corners }"
+          :aria-pressed="n === currentLevel('corners')" :aria-label="`White corners, ${levelName('corners', n)}`"
+          @click="start('corners', n)"
+        >{{ n === MAX_LEVEL.corners ? 'Full scramble' : n }}</button>
+      </div>
+    </div>
+    <div class="pick">
+      <b>Fill the middle layer</b>
+      <p>With the white face done, the four edges with no yellow go into the middle row, each between the sides of its colours. Pick how many are still to place, or start from a full scramble.</p>
+      <div class="chips">
+        <button
+          v-for="n in MAX_LEVEL.middle" :key="n" class="btn level"
+          :class="{ wide: n === MAX_LEVEL.middle }"
+          :aria-pressed="n === currentLevel('middle')" :aria-label="`Middle layer, ${levelName('middle', n)}`"
+          @click="start('middle', n)"
+        >{{ n === MAX_LEVEL.middle ? 'Full scramble' : n }}</button>
+      </div>
+    </div>
     <button v-if="drill" class="btn plain" @click="resetToSolved">Stop practising</button>
   </BottomSheet>
 </template>

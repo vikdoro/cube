@@ -3,9 +3,10 @@ import { applyMove, FACES, inverse, isSolved, type CubeState, type Face, type Mo
 /**
  * The drills. Undo: a few random quarter turns to undo. The hint is the inverse of the last turn still standing; the
  * player's own turns cancel against it. Every attempt ends with a solved cube. Lily: make the white lily (see lily.ts).
- * Cross: drop the lily's petals onto the white face (see cross.ts).
+ * Cross: drop the lily's petals onto the white face (see cross.ts). Corners: put the white corners in round the cross
+ * (see corners.ts). Middle: put the middle layer's edges in (see middle.ts).
  */
-export type DrillKind = 'undo' | 'lily' | 'cross'
+export type DrillKind = 'undo' | 'lily' | 'cross' | 'corners' | 'middle'
 
 const AXIS: Record<Face, number> = { U: 1, D: 1, R: 0, L: 0, F: 2, B: 2 }
 const QUARTER_TURNS: Move[] = FACES.flatMap(layer => [{ layer, amount: 1 }, { layer, amount: 3 }] as Move[])

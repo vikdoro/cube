@@ -1,9 +1,12 @@
 import { shallowRef } from 'vue'
 import { TURN_MS } from '../board/motion'
 import { extendPath, pathFromSolved, randomTurns, scramble, type DrillKind } from '../cube/drills'
+import { cornersHint, cornersPuzzle, cornersTurns, isFirstLayer } from '../cube/corners'
 import { crossHint, crossPuzzle, isCross, routineTurns } from '../cube/cross'
 import { isLily, lilyDistance, lilyHint, lilyPuzzle } from '../cube/lily'
+import { isTwoLayers, middleHint, middlePuzzle, middleTurns } from '../cube/middle'
 import { applyMoves, inverse, isSolved, SOLVED, type CubeState, type Move } from '../cube/model'
+import { rollTowards } from '../cube/view'
 import { IDENTITY } from '../cube/vec'
 import { loadPractice, savePractice } from '../storage'
 import { useCube } from './useCube'
@@ -14,13 +17,14 @@ export interface Drill {
   kind: DrillKind
   /**
    * Undo: how many turns the cube was scrambled by. Lily: how many petals are left to place, 4 for a full scramble.
-   * Cross: how many petals are left to drop, 5 for a full scramble.
+   * Cross: how many petals are left to drop, 5 for a full scramble. Corners: how many corners are left to place, 5 for
+   * a full scramble. Middle: how many middle edges are left to place, 5 for a full scramble.
    */
   level: number
   start: CubeState
   /** Undo: the turns from solved to the start, so the hint can undo them one by one. */
   startPath: readonly Move[]
-  /** The fewest turns it can be solved in, when known. For the cross, the turns the routine takes. */
+  /** The fewest turns it can be solved in, when known. For the later drills, the turns the routine takes. */
   par: number | null
   moves: number
   hints: number
@@ -29,18 +33,22 @@ export interface Drill {
   done: boolean
   /** Undo: the turns from solved to the current position, kept up to date as the player turns. */
   path: readonly Move[]
+  /** The last seven turns as made, newest last, so the corners and middle hints can finish a sequence begun. */
+  recent: readonly Move[]
 }
 
-export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4, cross: 5 }
+export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4, cross: 5, corners: 5, middle: 5 }
 
 /** Whether the drill's goal is reached. */
-const GOAL: Record<DrillKind, (state: CubeState) => boolean> = { undo: isSolved, lily: isLily, cross: isCross }
+const GOAL: Record<DrillKind, (state: CubeState) => boolean> = {
+  undo: isSolved, lily: isLily, cross: isCross, corners: isFirstLayer, middle: isTwoLayers,
+}
 
 const cube = useCube()
 const sheets = useSheets()
 const drill = shallowRef<Drill | null>(null)
 
-const fresh = { moves: 0, hints: 0, hintShown: false, done: false } as const
+const fresh = { moves: 0, hints: 0, hintShown: false, done: false, recent: [] } as const
 
 /** Undo a few random turns. */
 function startUndo(level = 1) {
@@ -67,6 +75,25 @@ function startCross(level = 1) {
   cube.setView(IDENTITY)
 }
 
+/**
+ * Put the white corners in, with a few left to place or from a full scramble. White starts in the middle, where the
+ * slots being filled are easiest to see, and yellow on the lid.
+ */
+function startCorners(level = 1) {
+  const start = cornersPuzzle(() => scramble(SOLVED), level)
+  savePractice({ cornersLevel: level })
+  begin({ kind: 'corners', level, start, startPath: [], par: level < MAX_LEVEL.corners ? cornersTurns(start) : null, path: [], ...fresh })
+  cube.setView(rollTowards(IDENTITY, [0, -1, 0]))
+}
+
+/** Put the middle layer's edges in, with a few left to place or from a full scramble. Yellow starts in the middle. */
+function startMiddle(level = 1) {
+  const start = middlePuzzle(() => scramble(SOLVED), level)
+  savePractice({ middleLevel: level })
+  begin({ kind: 'middle', level, start, startPath: [], par: level < MAX_LEVEL.middle ? middleTurns(start) : null, path: [], ...fresh })
+  cube.setView(IDENTITY)
+}
+
 function begin(next: Drill) {
   drill.value = next
   cube.reset(next.start)
@@ -79,7 +106,9 @@ function begin(next: Drill) {
   }
 }
 
-const START: Record<DrillKind, (level: number) => void> = { undo: startUndo, lily: startLily, cross: startCross }
+const START: Record<DrillKind, (level: number) => void> = {
+  undo: startUndo, lily: startLily, cross: startCross, corners: startCorners, middle: startMiddle,
+}
 
 /** Start a drill at a level. */
 const start = (kind: DrillKind, level: number) => START[kind](level)
@@ -117,7 +146,9 @@ function startOver() {
 function recordTurn(move: Move) {
   const d = drill.value
   if (!d || d.done) return
-  drill.value = { ...d, moves: d.moves + 1, hintShown: false, path: extendPath(d.path, move) }
+  drill.value = {
+    ...d, moves: d.moves + 1, hintShown: false, path: extendPath(d.path, move), recent: [...d.recent, move].slice(-7),
+  }
 }
 
 /** The next turn to suggest for a drill, if any. */
@@ -125,6 +156,8 @@ const HINT: Record<DrillKind, (d: Drill) => Move | null> = {
   undo: d => d.path.length ? inverse(d.path[d.path.length - 1]) : null,
   lily: () => lilyHint(cube.state.value),
   cross: () => crossHint(cube.state.value),
+  corners: d => cornersHint(cube.state.value, d.recent),
+  middle: d => middleHint(cube.state.value, d.recent),
 }
 
 function hint() {
@@ -151,7 +184,7 @@ export function usePractice() {
     currentLevel: (kind: DrillKind) => {
       if (drill.value?.kind === kind) return drill.value.level
       const memory = loadPractice()
-      return ({ undo: memory.level, lily: memory.lilyLevel, cross: memory.crossLevel }[kind]) ?? 1
+      return ({ undo: memory.level, lily: memory.lilyLevel, cross: memory.crossLevel, corners: memory.cornersLevel, middle: memory.middleLevel }[kind]) ?? 1
     },
   }
 }

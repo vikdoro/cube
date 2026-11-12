@@ -3,12 +3,20 @@ import type { Drill } from './composables/usePractice'
 
 export const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-/** A drill's level in a few words: "2 moves" to undo, "2 petals" or "full scramble" for the lily and the cross. */
+// what a drill's level counts, and the level that is a full scramble instead
+const COUNTS: Record<DrillKind, string> = { undo: 'move', lily: 'petal', cross: 'petal', corners: 'corner', middle: 'edge' }
+const FULL_SCRAMBLE: Record<DrillKind, number | null> = { undo: null, lily: 4, cross: 5, corners: 5, middle: 5 }
+
+/** A drill's level in a few words: "2 moves" to undo, "2 petals", "2 corners", "2 edges" or "full scramble". */
 export const levelName = (kind: DrillKind, level: number) =>
-  kind === 'undo' ? plural(level, 'move') : level === (kind === 'lily' ? 4 : 5) ? 'full scramble' : plural(level, 'petal')
+  level === FULL_SCRAMBLE[kind] ? 'full scramble' : plural(level, COUNTS[kind])
+
+const TITLES: Record<Exclude<DrillKind, 'undo'>, string> = {
+  lily: 'White lily', cross: 'White cross', corners: 'White corners', middle: 'Middle layer',
+}
 
 export const drillTitle = (d: Drill) =>
-  d.kind === 'undo' ? `Undo ${levelName('undo', d.level)}` : `${d.kind === 'lily' ? 'White lily' : 'White cross'} · ${levelName(d.kind, d.level)}`
+  d.kind === 'undo' ? `Undo ${levelName('undo', d.level)}` : `${TITLES[d.kind]} · ${levelName(d.kind, d.level)}`
 
 /** What the player has done once the drill's goal is reached. */
-export const doneTitle = (d: Drill) => `${{ undo: 'Solved', lily: 'Lily', cross: 'Cross' }[d.kind]} in ${plural(d.moves, 'move')}`
+export const doneTitle = (d: Drill) => `${{ undo: 'Solved', lily: 'Lily', cross: 'Cross', corners: 'Corners', middle: 'Middle layer' }[d.kind]} in ${plural(d.moves, 'move')}`

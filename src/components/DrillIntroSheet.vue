@@ -38,6 +38,24 @@ function startOver() {
         <li><span>Turn that side <b>twice</b>. The petal drops onto the lid.</span></li>
         <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
       </ol>
+      <ol v-else-if="drill.kind === 'corners'" class="steps">
+        <li v-if="drill.level < MAX_LEVEL.corners"><span>Put the four <b>white corners</b> in the middle face, between the white edges, each matching the two sides next to it. That finishes the white face.</span></li>
+        <li v-else><span>Make the <b>white face</b>: first the lily, then the cross, then the four white corners, each matching the two sides next to it.</span></li>
+        <li><span>Turn the <b>lid</b> until a white corner is on the outer edge, at the same corner of the board as its slot: the corner of the middle face between the sides of its two colours.</span></li>
+        <li><span>Then four turns: a side at that corner, the lid, the side back, the lid back. Repeat them until the corner is in, white in the middle. It takes one, three or five goes.</span></li>
+        <li><span>A white corner stuck in the middle face in the wrong place: the four turns once at its corner lift it out.</span></li>
+        <li v-if="drill.level < MAX_LEVEL.corners"><span>{{ drill.level === 1 ? 'One corner is' : `${drill.level} corners are` }} still to place. The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board, and shows which side.</span></li>
+      </ol>
+      <ol v-else-if="drill.kind === 'middle'" class="steps">
+        <li v-if="drill.level < MAX_LEVEL.middle"><span>Put the four edges with no yellow into the <b>middle row</b> of the sides, each between the two sides of its colours. The white face stays done, on the lid.</span></li>
+        <li v-else><span>Make the <b>first two layers</b>: the white face first (lily, cross, corners), then the four edges with no yellow into the middle row, each between the two sides of its colours.</span></li>
+        <li><span>Find an edge on the yellow face with no yellow on it. Turn the <b>yellow face</b> until its colour on the side matches that side's centre.</span></li>
+        <li><span>Its other colour says where it goes: the middle row, towards the side of that colour, left or right. Eight turns put it in: four with that side, then four with the side it is on.</span></li>
+        <li><span>An edge stuck in the middle row in the wrong place, or the wrong way round: the eight turns there push it out onto the yellow face.</span></li>
+        <li v-if="drill.level < MAX_LEVEL.middle"><span>{{ drill.level === 1 ? 'One edge is' : `${drill.level} edges are` }} still to place. The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
+      </ol>
       <ol v-else class="steps">
         <li><span>The cube was turned <b>{{ plural(drill.level, 'time') }}</b> from solved. Turn it back.</span></li>
         <li><span>Each of your turns can cancel one of them, so {{ plural(drill.level, 'turn') }} is the shortest way. Taking more is fine.</span></li>

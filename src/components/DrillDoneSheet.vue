@@ -12,7 +12,7 @@ const { drill, nextPuzzle, start } = usePractice()
 const summary = computed(() => {
   const d = drill.value
   if (!d) return ''
-  const par = d.par === null ? '' : d.kind === 'cross'
+  const par = d.par === null ? '' : d.kind !== 'undo' && d.kind !== 'lily'
     ? (d.moves <= d.par ? 'No wasted turns. ' : `The routine takes ${d.par}. `)
     : (d.moves <= d.par ? 'That is the shortest way. ' : `It can be done in ${d.par}. `)
   return par + (d.hints ? `You used ${plural(d.hints, 'hint')}.` : 'No hints.')
