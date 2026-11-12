@@ -1,4 +1,4 @@
-import { applyMove, FACES, faceOf, permutation, pieceSlots, SLOTS, type CubeState, type Move } from './model'
+import { applyMove, FACES, faceOf, permutation, pieceSlots, SLOTS, type CubeState, type Move } from '@tadacube/engine'
 
 /**
  * The white lily: the four white edges around the yellow centre, white facing the same way as the yellow, whatever the

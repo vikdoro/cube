@@ -10,5 +10,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "packages/*/src/**/*.ts", "packages/*/src/**/*.vue"],
+  // these tests read files or load CommonJS through node, whose types the project does not have
+  "exclude": ["src/boundaries.test.ts", "packages/*/src/interop.test.ts"]
 }

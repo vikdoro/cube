@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useCube } from '../composables/useCube'
+import { board } from '../board'
 
-const { badge } = useCube()
+const { badge } = board
 </script>
 
 <template>

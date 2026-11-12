@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isSolved } from '@tadacube/engine'
 import { scramble } from '../cube/drills'
-import { isSolved } from '../cube/model'
-import { useCube } from '../composables/useCube'
+import { board as cube } from '../board'
 import { usePlayer } from '../composables/usePlayer'
 import { usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
 import { doneTitle, drillTitle, plural } from '../text'
 
-const cube = useCube()
 const { drill, startOver } = usePractice()
 const { turnsMade } = usePlayer()
 const sheets = useSheets()

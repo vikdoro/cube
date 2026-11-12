@@ -1,14 +1,13 @@
 import { shallowRef } from 'vue'
-import { UNDO_MS } from '../board/motion'
-import { inverse, type Move } from '../cube/model'
-import { useCube } from './useCube'
+import { inverse, type Move } from '@tadacube/engine'
+import { UNDO_MS } from '@tadacube/engine/board'
+import { board as cube } from '../board'
 import { usePractice } from './usePractice'
 
 /**
  * The player's own turns, and undoing them. Undo shows under the board the moment a turn is made, for two seconds. Each tap
  * turns the last one back, and Undo shows again for the one before.
  */
-const cube = useCube()
 const practice = usePractice()
 
 /** The player's turns that can still be undone, newest last. */

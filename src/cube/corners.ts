@@ -1,4 +1,4 @@
-import { applyMove, inverse, pieceSlots, sameMove, SLOTS, type CubeState, type Face, type Move } from './model'
+import { applyMove, inverse, pieceSlots, sameMove, SLOTS, type CubeState, type Face, type Move } from '@tadacube/engine'
 import { crossHint, isCross } from './cross'
 
 /**

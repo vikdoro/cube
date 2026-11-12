@@ -1,4 +1,4 @@
-import { applyMove, applyMoves, faceOf, inverse, pieceSlots, sameMove, SLOTS, type CubeState, type Face, type Move } from './model'
+import { applyMove, applyMoves, faceOf, inverse, pieceSlots, sameMove, SLOTS, type CubeState, type Face, type Move } from '@tadacube/engine'
 import { cornersHint, isFirstLayer } from './corners'
 
 /**

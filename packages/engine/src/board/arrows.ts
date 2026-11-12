@@ -1,6 +1,6 @@
-import { inLayer, LAYER_AXIS, permutation, SLOTS, type Move } from '../cube/model'
-import { dot } from '../cube/vec'
-import { toBoard, type View } from '../cube/view'
+import { inLayer, LAYER_AXIS, permutation, SLOTS, type Move } from '../model'
+import { dot } from '../vec'
+import { toBoard, type View } from '../view'
 import { slotCentre, UNIT, RING, type Point } from './layout'
 
 /** SVG path data for the arrows that show a face turn on the board, computed from the move in the current view. */

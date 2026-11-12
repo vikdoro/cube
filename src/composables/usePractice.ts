@@ -1,15 +1,13 @@
 import { shallowRef } from 'vue'
-import { TURN_MS } from '../board/motion'
+import { applyMoves, IDENTITY, inverse, isSolved, rollTowards, SOLVED, type CubeState, type Move } from '@tadacube/engine'
+import { TURN_MS } from '@tadacube/engine/board'
 import { extendPath, pathFromSolved, randomTurns, scramble, type DrillKind } from '../cube/drills'
 import { cornersHint, cornersPuzzle, cornersTurns, isFirstLayer } from '../cube/corners'
 import { crossHint, crossPuzzle, isCross, routineTurns } from '../cube/cross'
 import { isLily, lilyDistance, lilyHint, lilyPuzzle } from '../cube/lily'
 import { isTwoLayers, middleHint, middlePuzzle, middleTurns } from '../cube/middle'
-import { applyMoves, inverse, isSolved, SOLVED, type CubeState, type Move } from '../cube/model'
-import { rollTowards } from '../cube/view'
-import { IDENTITY } from '../cube/vec'
 import { loadPractice, savePractice } from '../storage'
-import { useCube } from './useCube'
+import { board as cube } from '../board'
 import { useSheets } from './useSheets'
 
 /** The drill in progress, if any. Replaced as a whole on every change. */
@@ -44,7 +42,6 @@ const GOAL: Record<DrillKind, (state: CubeState) => boolean> = {
   undo: isSolved, lily: isLily, cross: isCross, corners: isFirstLayer, middle: isTwoLayers,
 }
 
-const cube = useCube()
 const sheets = useSheets()
 const drill = shallowRef<Drill | null>(null)
 

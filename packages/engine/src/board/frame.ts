@@ -1,5 +1,5 @@
-import { faceOf, inverse, permutation, SLOTS, type CubeState, type Face, type Move } from '../cube/model'
-import type { View } from '../cube/view'
+import { faceOf, inverse, permutation, SLOTS, type CubeState, type Face, type Move } from '../model'
+import type { View } from '../view'
 import { lerpPolygon, placements, type Polygon } from './layout'
 import { easeInOut, ROLL_MS, TURN_MS } from './motion'
 

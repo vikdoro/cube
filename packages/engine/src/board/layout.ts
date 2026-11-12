@@ -1,5 +1,5 @@
-import { SLOTS, type Slot } from '../cube/model'
-import { toBoard, type View } from '../cube/view'
+import { SLOTS, type Slot } from '../model'
+import { toBoard, type View } from '../view'
 
 /**
  * The board is an open box seen from above: the face in the middle, the four sides fanned out around it three

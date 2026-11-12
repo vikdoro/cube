@@ -12,4 +12,4 @@ export const UNDO_MS = 2000
 
 export const easeInOut = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
-export const prefersReducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+export const prefersReducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches

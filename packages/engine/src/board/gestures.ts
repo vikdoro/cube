@@ -1,6 +1,6 @@
-import { LAYER_AXIS, layerAt, SLOTS, type Layer, type Slot } from '../cube/model'
-import { add, cross, scale } from '../cube/vec'
-import { facingFace, toBoard, type View } from '../cube/view'
+import { LAYER_AXIS, layerAt, SLOTS, type Layer, type Slot } from '../model'
+import { add, cross, scale } from '../vec'
+import { facingFace, toBoard, type View } from '../view'
 import { BOARD_BOUNDS, placements, RING, slotCentre, UNIT, type Point, type Polygon } from './layout'
 
 /**

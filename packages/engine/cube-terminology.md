@@ -21,7 +21,7 @@ Terms used for the board and its controls.
 ## Sticker names
 
 A sticker is named by its face and a number from 1 to 9, in reading order as the face is seen from inside the cube,
-with the cube held as at the start (see `START_NAMES` in `src/components/CubeBoard.vue`). Each side is read with its
+with the cube held as at the start (see `START_NAMES` in `src/vue/CubeBoard.vue`). Each side is read with its
 rim up, so its rim row is 1 2 3 and its inner row is 7 8 9.
 
 The names belong to the stickers, not to places on the board, so they move with the stickers when the cube turns.

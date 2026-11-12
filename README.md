@@ -38,10 +38,11 @@ up, so its top row reads D3 D2 D1.
 
 | Folder | What lives there |
 | --- | --- |
-| `src/cube/` | The cube itself, pure and stateless. `model.ts`: slots, moves as permutations, solved check. `view.ts`: how the cube is held on the board, rolling it, board-relative move names. `drills.ts`: building and hinting the undo puzzles. `lily.ts`, `cross.ts`, `corners.ts` and `middle.ts`: the white lily, white cross, white corners and middle layer drills, their goals, hints and puzzles. |
-| `src/board/` | The flat board, pure geometry. `layout.ts`: where each sticker is drawn. `arrows.ts`: the turn arrows. `gestures.ts`: reading a drag as a turn. `frame.ts`: stickers at a moment of an animation. `motion.ts`: timings. |
-| `src/composables/` | App state, one shared instance each. `useCube`: the cube, its turn queue and animation clock. `usePlayer`: the player's turns and undo. `usePractice`: the drill in progress. `useSheets`: which bottom sheet is open. |
-| `src/components/` | The UI: `CubeBoard` (SVG + dragging), `TopBar` (which shows the drill in progress), `UndoButton` and `HintButton` under the board, and the sheets built on `BottomSheet` (`PracticeSheet`, `DrillIntroSheet`, `DrillDoneSheet`). |
+| `packages/engine/` | The open engine, `@tadacube/engine` (see its README). `src/model.ts`: slots, moves as permutations, solved check. `src/view.ts`: how the cube is held on the board, rolling it, board-relative move names. `src/notation.ts`, `src/facelets.ts`, `src/cube.ts`: standard notation, solver facelets, a headless cube. `src/board/`: the flat board, pure geometry. `src/vue/`: `createBoard` (the cube, its turn queue and animation clock), `CubeBoard` (SVG + dragging) and the keyboard. |
+| `src/cube/` | The drills, pure and stateless. `drills.ts`: building and hinting the undo puzzles. `lily.ts`, `cross.ts`, `corners.ts` and `middle.ts`: the white lily, white cross, white corners and middle layer drills, their goals, hints and puzzles. |
+| `src/board.ts` | The app's one board, made with `createBoard`. |
+| `src/composables/` | App state, one shared instance each. `usePlayer`: the player's turns and undo. `usePractice`: the drill in progress. `useSheets`: which bottom sheet is open. |
+| `src/components/` | The UI: `TopBar` (which shows the drill in progress), `UndoButton` and `HintButton` under the board, and the sheets built on `BottomSheet` (`PracticeSheet`, `DrillIntroSheet`, `DrillDoneSheet`). |
 
 Moves are named by where their face sits on the board, not by the cube's own
 faces, as if looking down into the cube from above: the middle is always D, the

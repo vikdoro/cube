@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { scramble } from './drills'
 import { isLily, lilyDistance, lilyHint, lilyPuzzle, petals } from './lily'
-import { applyMove, applyMoves, SOLVED, type Move } from './model'
+import { applyMove, applyMoves, SOLVED, type Move } from '@tadacube/engine'
 
 // a seeded generator, so failures can be reproduced
 function seeded(seed: number) {

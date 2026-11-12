@@ -1,4 +1,4 @@
-import { applyMove, FACES, inverse, isSolved, type CubeState, type Face, type Move } from './model'
+import { applyMove, FACES, inverse, isSolved, type CubeState, type Face, type Move } from '@tadacube/engine'
 
 /**
  * The drills. Undo: a few random quarter turns to undo. The hint is the inverse of the last turn still standing; the

@@ -6,14 +6,14 @@ import { arrowPaths } from '../board/arrows'
 import { stickerShapes } from '../board/frame'
 import { bestOption, COMMIT_PX, directionOf, dragOptions, isOffBoard, isSeam, moveZone, nearestSlot, RING_CUT, ringHalves, rings, ringStart, REACH_PX, scoreOption, SLOP_PX, type DragOption } from '../board/gestures'
 import { BOARD_BOUNDS, centroid, LID_PLATE, PLATE_HALF, placements, pointsAttr, slotCentre, UNIT, VIEW_BOX, type Point } from '../board/layout'
-import { inLayer, SLOTS, type Face, type Layer } from '../cube/model'
-import { IDENTITY } from '../cube/vec'
-import { boardMove, boardMoveName, boardSlotName, facingFace } from '../cube/view'
-import { useCube } from '../composables/useCube'
-import { usePlayer } from '../composables/usePlayer'
+import { inLayer, SLOTS, type Face, type Layer, type Move } from '../model'
+import { IDENTITY } from '../vec'
+import { boardMove, boardMoveName, boardSlotName, facingFace } from '../view'
+import type { Board } from './createBoard'
 
-const cube = useCube()
-const player = usePlayer()
+// `turn` is a drag that has been let go to turn; `drag` is a drag in progress (the app hides Undo while it goes)
+const { board: cube, debug = false } = defineProps<{ board: Board; debug?: boolean }>()
+const emit = defineEmits<{ turn: [move: Move]; drag: [] }>()
 const svg = useTemplateRef<SVGSVGElement>('svg')
 
 // as wide as it can be, leaving a row above it for the move's name and one under it for Undo; the margins past the
@@ -69,7 +69,6 @@ const START_NAMES = (() => {
   }
   return names
 })()
-const debug = new URLSearchParams(location.search).has('debug')
 const labels = computed(() => {
   if (!debug) return []
   return shapes.value.map(s => {
@@ -188,7 +187,7 @@ function onPointerMove(e: PointerEvent) {
   if (!drag.moved && Math.hypot(p[0] - drag.start[0], p[1] - drag.start[1]) * drag.pxPerUnit < SLOP_PX) return
   drag.moved = true
   cube.hideArrows()
-  player.hideUndo()
+  emit('drag')
   if (isOffBoard(p, drag.pxPerUnit)) return cube.setPreview({ kind: 'cancel' })
   const best = bestOption(drag.options, drag.path, drag.reach)!
   const along = best.along * drag.pxPerUnit
@@ -204,7 +203,7 @@ function endDrag(e: PointerEvent, commit: boolean) {
   if (!drag || e.pointerId !== drag.pointerId) return
   const d = drag, p = cube.preview.value
   drag = null
-  if (commit && d.moved && p?.kind === 'turn' && !p.blocked && p.ready) player.playerTurn(p.move)
+  if (commit && d.moved && p?.kind === 'turn' && !p.blocked && p.ready) emit('turn', p.move)
   else if (commit && !d.moved) cube.rollToSlot(d.tapSlot)
   cube.setPreview(null)
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Drill } from './composables/usePractice'
 import type { DrillKind } from './cube/drills'
-import { SOLVED } from './cube/model'
+import { SOLVED } from '@tadacube/engine'
 import { doneTitle, drillTitle, levelName } from './text'
 
 const drill = (kind: DrillKind, level: number, moves = 0): Drill =>
