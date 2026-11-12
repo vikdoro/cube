@@ -38,7 +38,7 @@ up, so its top row reads D3 D2 D1.
 
 | Folder | What lives there |
 | --- | --- |
-| `packages/engine/` | The open engine, `@tadacube/engine` (see its README). `src/model.ts`: slots, moves as permutations, solved check. `src/view.ts`: how the cube is held on the board, rolling it, board-relative move names. `src/notation.ts`, `src/facelets.ts`, `src/cube.ts`: standard notation, solver facelets, a headless cube. `src/board/`: the flat board, pure geometry. `src/vue/`: `createBoard` (the cube, its turn queue and animation clock), `CubeBoard` (SVG + dragging) and the keyboard. |
+| `@tadacube/engine` | The open engine, installed from [vikdoro/tadacube-engine](https://github.com/vikdoro/tadacube-engine) at a git tag (see its README). `src/model.ts`: slots, moves as permutations, solved check. `src/view.ts`: how the cube is held on the board, rolling it, board-relative move names. `src/notation.ts`, `src/facelets.ts`, `src/cube.ts`: standard notation, solver facelets, a headless cube. `src/board/`: the flat board, pure geometry. `src/vue/`: `createBoard` (the cube, its turn queue and animation clock), `CubeBoard` (SVG + dragging) and the keyboard. |
 | `src/cube/` | The drills, pure and stateless. `drills.ts`: building and hinting the undo puzzles. `lily.ts`, `cross.ts`, `corners.ts` and `middle.ts`: the white lily, white cross, white corners and middle layer drills, their goals, hints and puzzles. |
 | `src/board.ts` | The app's one board, made with `createBoard`. |
 | `src/composables/` | App state, one shared instance each. `usePlayer`: the player's turns and undo. `usePractice`: the drill in progress. `useSheets`: which bottom sheet is open. |

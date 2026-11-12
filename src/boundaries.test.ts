@@ -3,12 +3,13 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /*
- * Where the line between the open engine and the private app falls. The engine (packages/engine) knows nothing
- * about drills, practice, storage or the app; the app reaches the engine only through its three entry points.
+ * Where the line between the open engine and the private app falls. The engine (github:vikdoro/tadacube-engine,
+ * installed under node_modules) knows nothing about drills, practice, storage or the app; the app reaches the engine
+ * only through its three entry points.
  */
 
 const ROOT = resolve(import.meta.dirname, '..')
-const ENGINE = join(ROOT, 'packages/engine')
+const ENGINE = join(ROOT, 'node_modules/@tadacube/engine')
 const ENTRY_POINTS = ['@tadacube/engine', '@tadacube/engine/board', '@tadacube/engine/vue']
 
 const walk = (dir: string): string[] =>
@@ -24,7 +25,7 @@ const importsOf = (file: string) =>
   [...readFileSync(file, 'utf8').matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)].map(m => m[1])
 
 describe('the engine package', () => {
-  it('is a workspace package with a core, a board and a vue entry point', () => {
+  it('is installed as a package with a core, a board and a vue entry point', () => {
     const pkg = JSON.parse(readFileSync(join(ENGINE, 'package.json'), 'utf8'))
     expect(pkg.name).toBe('@tadacube/engine')
     expect(Object.keys(pkg.exports).sort()).toEqual(['.', './board', './vue'])

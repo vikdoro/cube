@@ -3,9 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
@@ -25,7 +22,7 @@
     "wrangler": "^4.151.3"
   },
   "dependencies": {
-    "@tadacube/engine": "*",
+    "@tadacube/engine": "github:vikdoro/tadacube-engine#v0.1.0",
     "vue": "^3.5.44"
   }
 }
