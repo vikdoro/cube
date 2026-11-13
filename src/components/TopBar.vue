@@ -37,7 +37,7 @@ const count = computed(() => {
       </span>
       <span class="count" aria-live="polite">{{ count }}</span>
     </button>
-    <h1 v-else><button class="logo" @click="onLogo">Tadacube</button></h1>
+    <h1 v-else><button class="logo" @click="onLogo">Tadacuber</button></h1>
     <button v-if="canScramble" @click="cube.reset(scramble(cube.state.value))">Scramble</button>
     <button aria-haspopup="dialog" @click="sheets.open('practice')">Practice</button>
   </header>
