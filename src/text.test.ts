@@ -23,6 +23,8 @@ describe('drill names', () => {
     expect(levelName('middle', 5)).toBe('full scramble')
     expect(levelName('yellow', 2)).toBe('an L')
     expect(levelName('yellow', 4)).toBe('any shape')
+    expect(levelName('edges', 2)).toBe('a pair across')
+    expect(levelName('edges', 3)).toBe('any order')
   })
 
   it('titles a drill by its goal and level', () => {
@@ -33,6 +35,7 @@ describe('drill names', () => {
     expect(drillTitle(drill('corners', 2))).toBe('White corners · 2 corners')
     expect(drillTitle(drill('middle', 3))).toBe('Middle layer · 3 edges')
     expect(drillTitle(drill('yellow', 1))).toBe('Yellow cross · a line')
+    expect(drillTitle(drill('edges', 1))).toBe('Yellow edges · a pair side by side')
   })
 
   it('says what was made, and in how many moves', () => {
@@ -42,5 +45,6 @@ describe('drill names', () => {
     expect(doneTitle(drill('corners', 1, 4))).toBe('Corners in 4 moves')
     expect(doneTitle(drill('middle', 1, 8))).toBe('Middle layer in 8 moves')
     expect(doneTitle(drill('yellow', 3, 18))).toBe('Yellow cross in 18 moves')
+    expect(doneTitle(drill('edges', 1, 10))).toBe('Yellow edges in 10 moves')
   })
 })

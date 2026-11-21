@@ -9,22 +9,23 @@ Tadacube is an interactive 3×3 cube on a flat board (one face in the middle, th
 - Drag a sticker to turn its row or ring; tap a side to roll the cube so that side is in the middle.
 - Keyboard controls by board position (S middle, W far side, X near side, A/D sides; arrows roll; Cmd/Ctrl+Z undoes).
 - Undo button after each move, hint button during a drill, move name shown above the board, start-over confirm on the logo.
-- Six drills in the Practice sheet, each with levels, an intro sheet shown once, and a done sheet:
+- Seven drills in the Practice sheet, each with levels, an intro sheet shown once, and a done sheet:
   - Undo the scramble (1–5 turns)
   - Make the white lily (1–4 petals missing, or full scramble)
   - Make the white cross (1–5 petals, or full scramble)
   - Put in the white corners (1–5, or full scramble)
   - Put in the middle layer (1–5, or full scramble)
   - Make the yellow cross (from a line, an L, a dot, or any shape)
+  - Put the yellow edges in place (from a pair side by side, a pair across, or any order)
 - Last level per drill and "intro seen" flags are remembered in `localStorage`.
 - `?debug` labels every sticker with the place it starts on.
-- Unit tests for the drills, text and the engine boundary (8 files, 53 tests, all pass).
+- Unit tests for the drills, text and the engine boundary (9 files, 59 tests, all pass).
 
 ## Next up
 
 Confirmed by Viktor 2026-11-21 (the repo has no TODO comments or issues; these came from the method and the README).
 
-1. Drills for the last edges and last corners, finishing the method
+1. Drills for the last corners (put them in place, then twist them), finishing the method
 2. Chain the drills into one guided course, as parked on the `learning-full` branch
 3. Show progress across drills, e.g. which levels were completed
 4. Add a lint step

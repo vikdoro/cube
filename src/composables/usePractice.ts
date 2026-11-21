@@ -7,6 +7,7 @@ import { crossHint, crossPuzzle, isCross, routineTurns } from '../cube/cross'
 import { isLily, lilyDistance, lilyHint, lilyPuzzle } from '../cube/lily'
 import { isTwoLayers, middleHint, middlePuzzle, middleTurns } from '../cube/middle'
 import { isYellowCross, yellowHint, yellowPuzzle, yellowTurns } from '../cube/yellow'
+import { edgesHint, edgesPuzzle, edgesTurns, isYellowEdges } from '../cube/edges'
 import { loadPractice, savePractice } from '../storage'
 import { board as cube } from '../board'
 import { useSheets } from './useSheets'
@@ -18,7 +19,7 @@ export interface Drill {
    * Undo: how many turns the cube was scrambled by. Lily: how many petals are left to place, 4 for a full scramble.
    * Cross: how many petals are left to drop, 5 for a full scramble. Corners: how many corners are left to place, 5 for
    * a full scramble. Middle: how many middle edges are left to place, 5 for a full scramble. Yellow: the goes of six turns left, 1 a
-   * line, 2 an L, 3 a dot, 4 any shape.
+   * line, 2 an L, 3 a dot, 4 any shape. Edges: 1 a pair next to each other, 2 a pair across, 3 either.
    */
   level: number
   start: CubeState
@@ -33,15 +34,15 @@ export interface Drill {
   done: boolean
   /** Undo: the turns from solved to the current position, kept up to date as the player turns. */
   path: readonly Move[]
-  /** The last seven turns as made, newest last, so the corners, middle and yellow hints can finish a sequence begun. */
+  /** The last seven turns as made, newest last, so the corners, middle, yellow and edges hints can finish a sequence begun. */
   recent: readonly Move[]
 }
 
-export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4, cross: 5, corners: 5, middle: 5, yellow: 4 }
+export const MAX_LEVEL: Record<DrillKind, number> = { undo: 5, lily: 4, cross: 5, corners: 5, middle: 5, yellow: 4, edges: 3 }
 
 /** Whether the drill's goal is reached. */
 const GOAL: Record<DrillKind, (state: CubeState) => boolean> = {
-  undo: isSolved, lily: isLily, cross: isCross, corners: isFirstLayer, middle: isTwoLayers, yellow: isYellowCross,
+  undo: isSolved, lily: isLily, cross: isCross, corners: isFirstLayer, middle: isTwoLayers, yellow: isYellowCross, edges: isYellowEdges,
 }
 
 const sheets = useSheets()
@@ -101,6 +102,14 @@ function startYellow(level = 1) {
   cube.setView(IDENTITY)
 }
 
+/** Put the yellow edges on their own sides, from a pair next to each other, a pair across or either. Yellow starts in the middle. */
+function startEdges(level = 1) {
+  const start = edgesPuzzle(() => scramble(SOLVED), level)
+  savePractice({ edgesLevel: level })
+  begin({ kind: 'edges', level, start, startPath: [], par: edgesTurns(start), path: [], ...fresh })
+  cube.setView(IDENTITY)
+}
+
 function begin(next: Drill) {
   drill.value = next
   cube.reset(next.start)
@@ -114,7 +123,7 @@ function begin(next: Drill) {
 }
 
 const START: Record<DrillKind, (level: number) => void> = {
-  undo: startUndo, lily: startLily, cross: startCross, corners: startCorners, middle: startMiddle, yellow: startYellow,
+  undo: startUndo, lily: startLily, cross: startCross, corners: startCorners, middle: startMiddle, yellow: startYellow, edges: startEdges,
 }
 
 /** Start a drill at a level. */
@@ -166,6 +175,7 @@ const HINT: Record<DrillKind, (d: Drill) => Move | null> = {
   corners: d => cornersHint(cube.state.value, d.recent),
   middle: d => middleHint(cube.state.value, d.recent),
   yellow: d => yellowHint(cube.state.value, d.recent),
+  edges: d => edgesHint(cube.state.value, d.recent),
 }
 
 function hint() {
@@ -192,7 +202,7 @@ export function usePractice() {
     currentLevel: (kind: DrillKind) => {
       if (drill.value?.kind === kind) return drill.value.level
       const memory = loadPractice()
-      return ({ undo: memory.level, lily: memory.lilyLevel, cross: memory.crossLevel, corners: memory.cornersLevel, middle: memory.middleLevel, yellow: memory.yellowLevel }[kind]) ?? 1
+      return ({ undo: memory.level, lily: memory.lilyLevel, cross: memory.crossLevel, corners: memory.cornersLevel, middle: memory.middleLevel, yellow: memory.yellowLevel, edges: memory.edgesLevel }[kind]) ?? 1
     },
   }
 }
