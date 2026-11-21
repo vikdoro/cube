@@ -30,7 +30,7 @@ const levelUp = computed(() => {
     <p>{{ summary }}</p>
     <div class="actions">
       <button class="btn primary big" autofocus @click="nextPuzzle">Next puzzle</button>
-      <button v-if="drill && levelUp" class="btn big" @click="start(drill.kind, levelUp)">Try {{ levelUp === MAX_LEVEL[drill.kind] && drill.kind !== 'undo' ? 'a ' : '' }}{{ levelName(drill.kind, levelUp) }}</button>
+      <button v-if="drill && levelUp" class="btn big" @click="start(drill.kind, levelUp)">Try {{ levelName(drill.kind, levelUp) === 'full scramble' ? 'a ' : '' }}{{ levelName(drill.kind, levelUp) }}</button>
       <button class="btn plain" @click="sheets.open('practice')">Back to Practice</button>
     </div>
   </BottomSheet>

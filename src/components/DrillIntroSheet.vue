@@ -2,7 +2,7 @@
 // How the drill works: shown before its first puzzle, and later from "Steps".
 import { MAX_LEVEL, usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
-import { drillTitle, plural } from '../text'
+import { drillTitle, levelName, plural } from '../text'
 import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
@@ -54,6 +54,14 @@ function startOver() {
         <li><span>Its other colour says where it goes: the middle row, towards the side of that colour, left or right. Eight turns put it in: four with that side, then four with the side it is on.</span></li>
         <li><span>An edge stuck in the middle row in the wrong place, or the wrong way round: the eight turns there push it out onto the yellow face.</span></li>
         <li v-if="drill.level < MAX_LEVEL.middle"><span>{{ drill.level === 1 ? 'One edge is' : `${drill.level} edges are` }} still to place. The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
+      </ol>
+      <ol v-else-if="drill.kind === 'yellow'" class="steps">
+        <li><span>Turn the four <b>yellow edges</b> so their yellow is on the yellow face, round the centre. That is the yellow cross. The corners don't matter, and neither do the edges' other colours. The first two layers stay done.</span></li>
+        <li><span>The yellow edges already on the yellow face make a <b>dot</b> (none), an <b>L</b> (two next to each other) or a <b>line</b> (two across). Each go of the six turns takes a dot to an L, an L to a line and a line to the cross.</span></li>
+        <li><span>Pick the side to work from. For a line: a side it runs alongside. For an L: the side with one arm opposite it and the other on its left. For a dot: any side. Left and right are as seen from that side, looking across the yellow face.</span></li>
+        <li><span>Six turns: that side, the side to its right, the yellow face, the right side back, the yellow face back, then that side back.</span></li>
+        <li><span>{{ drill.level < MAX_LEVEL.yellow ? `The yellow edges start as ${levelName('yellow', drill.level)}.` : 'The yellow edges can start in any shape.' }} The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
         <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
       </ol>
       <ol v-else class="steps">

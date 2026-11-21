@@ -12,6 +12,8 @@ export interface PracticeMemory {
   cornersLevel?: number
   /** The last "middle" level played. */
   middleLevel?: number
+  /** The last "yellow" level played. */
+  yellowLevel?: number
   /** Drills whose steps have been explained once already. */
   seen?: Partial<Record<DrillKind, boolean>>
 }
