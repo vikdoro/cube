@@ -2,6 +2,7 @@
 
 Newest first: date, what changed, link.
 
+- 2026-11-21: Fixed CI (Semgrep rule pack, actions pinned to SHAs) and tested the pull request pipeline ([PR #1](https://github.com/vikdoro/cube/pull/1))
 - 2026-11-21: Added CLAUDE.md, docs/spec.md and docs/log.md for cloud agents; added a CI workflow (build, tests, gitleaks, Semgrep); moved finished specs to docs/archive; ignored .env files; switched the engine dependency to the unpinned public flatcube repo ([191c213](https://github.com/vikdoro/cube/commit/191c213))
 - 2026-11-18: Reverted the displayed title to Tadacube ([6e12c9b](https://github.com/vikdoro/cube/commit/6e12c9b))
 - 2026-11-13: Renamed the displayed title to Tadacuber ([f795698](https://github.com/vikdoro/cube/commit/f795698))
