@@ -49,7 +49,7 @@ describe('the engine package', () => {
 
   it('holds no drill, practice or app code', () => {
     const names = walk(join(ENGINE, 'src')).map(f => relative(join(ENGINE, 'src'), f))
-    const private_ = /(^|\/)(drills|lily|cross|corners|middle|usePractice|usePlayer|useSheets|storage|text|App)\b/
+    const private_ = /(^|\/)(drills|lily|cross|corners|middle|yellow|usePractice|usePlayer|useSheets|storage|text|App)\b/
     expect(names.filter(n => private_.test(n))).toEqual([])
   })
 

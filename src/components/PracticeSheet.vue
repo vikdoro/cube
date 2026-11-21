@@ -70,6 +70,18 @@ const { drill, start, resetToSolved, currentLevel } = usePractice()
         >{{ n === MAX_LEVEL.middle ? 'Full scramble' : n }}</button>
       </div>
     </div>
+    <div class="pick">
+      <b>Make the yellow cross</b>
+      <p>With the first two layers done, the yellow edges turn so their yellow is on the yellow face. Six turns, done once, twice or three times. Pick the shape the yellow edges start in.</p>
+      <div class="chips">
+        <button
+          v-for="n in MAX_LEVEL.yellow" :key="n" class="btn level"
+          :class="{ wide: n === MAX_LEVEL.yellow }"
+          :aria-pressed="n === currentLevel('yellow')" :aria-label="`Yellow cross, ${levelName('yellow', n)}`"
+          @click="start('yellow', n)"
+        >{{ n === MAX_LEVEL.yellow ? 'Any shape' : n }}</button>
+      </div>
+    </div>
     <button v-if="drill" class="btn plain" @click="resetToSolved">Stop practising</button>
   </BottomSheet>
 </template>
