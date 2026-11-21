@@ -5,9 +5,9 @@ import { applyMove, FACES, inverse, isSolved, type CubeState, type Face, type Mo
  * player's own turns cancel against it. Every attempt ends with a solved cube. Lily: make the white lily (see lily.ts).
  * Cross: drop the lily's petals onto the white face (see cross.ts). Corners: put the white corners in round the cross
  * (see corners.ts). Middle: put the middle layer's edges in (see middle.ts). Yellow: make the yellow cross on top of
- * the first two layers (see yellow.ts).
+ * the first two layers (see yellow.ts). Edges: put the yellow edges on their own sides (see edges.ts).
  */
-export type DrillKind = 'undo' | 'lily' | 'cross' | 'corners' | 'middle' | 'yellow'
+export type DrillKind = 'undo' | 'lily' | 'cross' | 'corners' | 'middle' | 'yellow' | 'edges'
 
 const AXIS: Record<Face, number> = { U: 1, D: 1, R: 0, L: 0, F: 2, B: 2 }
 const QUARTER_TURNS: Move[] = FACES.flatMap(layer => [{ layer, amount: 1 }, { layer, amount: 3 }] as Move[])

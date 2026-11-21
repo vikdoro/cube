@@ -64,6 +64,14 @@ function startOver() {
         <li><span>{{ drill.level < MAX_LEVEL.yellow ? `The yellow edges start as ${levelName('yellow', drill.level)}.` : 'The yellow edges can start in any shape.' }} The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
         <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
       </ol>
+      <ol v-else-if="drill.kind === 'edges'" class="steps">
+        <li><span>Swap the four <b>yellow edges</b> round until each one's other colour matches the centre of its side. The yellow cross stays made, and the corners don't matter yet.</span></li>
+        <li><span>Turn the <b>yellow face</b> until two edges match their sides. If all four match, you're done.</span></li>
+        <li><span>Two <b>side by side</b>: work from the side with one of them opposite it and the other on its right. Two <b>across</b>: work from any side, then turn yellow to find a pair side by side and go again. Left and right are as seen from that side, looking across the yellow face.</span></li>
+        <li><span>Nine turns: the side to its right, the yellow face, the right side back, the yellow face, the right side, the yellow face twice, the right side back, then the yellow face.</span></li>
+        <li><span>{{ drill.level < MAX_LEVEL.edges ? `The edges start with ${levelName('edges', drill.level)} to find.` : 'The edges can start in any order.' }} The routine takes {{ plural(drill.par ?? 0, 'turn') }}.</span></li>
+        <li><span>Stuck? <b>Hint</b> draws the next turn on the board.</span></li>
+      </ol>
       <ol v-else class="steps">
         <li><span>The cube was turned <b>{{ plural(drill.level, 'time') }}</b> from solved. Turn it back.</span></li>
         <li><span>Each of your turns can cancel one of them, so {{ plural(drill.level, 'turn') }} is the shortest way. Taking more is fine.</span></li>

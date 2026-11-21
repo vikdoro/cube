@@ -82,6 +82,18 @@ const { drill, start, resetToSolved, currentLevel } = usePractice()
         >{{ n === MAX_LEVEL.yellow ? 'Any shape' : n }}</button>
       </div>
     </div>
+    <div class="pick">
+      <b>Put the yellow edges in place</b>
+      <p>With the yellow cross made, the yellow edges swap round until each one's other colour matches its side. Nine turns, done once or twice. Pick the pair that can match at the start.</p>
+      <div class="chips">
+        <button
+          v-for="n in MAX_LEVEL.edges" :key="n" class="btn level"
+          :class="{ wide: n === MAX_LEVEL.edges }"
+          :aria-pressed="n === currentLevel('edges')" :aria-label="`Yellow edges, ${levelName('edges', n)}`"
+          @click="start('edges', n)"
+        >{{ n === MAX_LEVEL.edges ? 'Any order' : n }}</button>
+      </div>
+    </div>
     <button v-if="drill" class="btn plain" @click="resetToSolved">Stop practising</button>
   </BottomSheet>
 </template>
