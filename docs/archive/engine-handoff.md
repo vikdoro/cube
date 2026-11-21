@@ -1,7 +1,7 @@
 You're doing a refactor in this repo (~/dev/cube, Vue 3 + TS + Vite + vitest): extracting an open-source "engine" package from a private cube-practice app. The design is settled and written down; your job is to implement it, not to redesign it.
 
 Read these first, in this order:
-1. `engine-spec.md` (repo root): the whole design, the decisions that are already made, the target layout, the public API, acceptance criteria.
+1. `engine-spec.md`: the whole design, the decisions that are already made, the target layout, the public API, acceptance criteria.
 2. The tests that are already written and currently red: `packages/engine/src/{notation,facelets,cube,interop}.test.ts`, `packages/engine/src/vue/{createBoard,keyboard}.test.ts`, `src/boundaries.test.ts`. They are the contract. Don't weaken or delete them; if one is wrong, say so and say why before changing it.
 3. The current code you'll be moving or reshaping: `src/cube/{model,view,vec}.ts`, `src/board/*`, `src/composables/*`, `src/components/CubeBoard.vue`, `src/App.vue`.
 

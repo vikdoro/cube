@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // A one-screen app: the board fills the screen, a drill takes over the title, and everything that explains or
 // chooses slides up from the bottom as a sheet.
-import { attachKeyboard, CubeBoard, type KeyAction } from '@tadacube/engine/vue'
+import { attachKeyboard, CubeBoard, type KeyAction } from 'flatcube/vue'
 import { onBeforeUnmount, onMounted } from 'vue'
 import { board } from './board'
 import { usePlayer } from './composables/usePlayer'

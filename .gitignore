@@ -27,3 +27,8 @@ dist-ssr
 
 # working notes
 PLAN.md
+
+# env files
+.env
+.env.*
+!.env.example

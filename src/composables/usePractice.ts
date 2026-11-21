@@ -1,6 +1,6 @@
 import { shallowRef } from 'vue'
-import { applyMoves, IDENTITY, inverse, isSolved, rollTowards, SOLVED, type CubeState, type Move } from '@tadacube/engine'
-import { TURN_MS } from '@tadacube/engine/board'
+import { applyMoves, IDENTITY, inverse, isSolved, rollTowards, SOLVED, type CubeState, type Move } from 'flatcube'
+import { TURN_MS } from 'flatcube/board'
 import { extendPath, pathFromSolved, randomTurns, scramble, type DrillKind } from '../cube/drills'
 import { cornersHint, cornersPuzzle, cornersTurns, isFirstLayer } from '../cube/corners'
 import { crossHint, crossPuzzle, isCross, routineTurns } from '../cube/cross'

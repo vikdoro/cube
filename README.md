@@ -28,26 +28,27 @@ npm run deploy   # build + wrangler deploy
 ## The engine
 
 The cube itself (model, notation, the board and its Vue component) is
-`@tadacube/engine`, which lives in its own private repo,
-[vikdoro/tadacube-engine](https://github.com/vikdoro/tadacube-engine). The app
-installs it as a GitHub dependency pinned to a tag,
-`"@tadacube/engine": "github:vikdoro/tadacube-engine#v0.1.0"`, and the lockfile
-pins that to a commit. `npm install` fetches it over SSH, so the machine needs
-GitHub access to the repo. The package ships TypeScript source, which Vite
-compiles into the app's bundle, so a deploy carries whichever engine version is
-installed. `src/boundaries.test.ts` checks that the installed engine holds no
-app code and that the app imports it only through its entry points.
+`flatcube`, which lives in its own public repo,
+[vikdoro/flatcube](https://github.com/vikdoro/flatcube). The app
+installs it as an unpinned GitHub dependency,
+`"flatcube": "github:vikdoro/flatcube"`, so it follows the engine's default
+branch; the lockfile pins whichever commit was last installed. `npm install`
+fetches it over HTTPS, so no credentials are needed. The package ships
+TypeScript source, which Vite compiles into the app's bundle, so a deploy
+carries whichever engine commit the lockfile holds. `src/boundaries.test.ts`
+checks that the installed engine holds no app code and that the app imports it
+only through its entry points.
 
-To change the engine:
+To pick up an engine change:
 
-1. Commit and push in the engine repo (`~/dev/tadacube-engine`).
-2. Tag a release: `git tag v0.1.1 && git push --tags`.
-3. Here, bump the `#v0.1.1` in `package.json`, run `npm install`, then
-   `npm run deploy`.
+1. Commit and push in the engine repo (`~/dev/flatcube`).
+2. Here, run `npm update flatcube` to move the lockfile to the new commit, check
+   that `package-lock.json` still says `git+https` (npm writes `git+ssh`; change
+   it back), then run the tests and `npm run deploy`.
 
 To work on both at once without tagging each change, run
-`npm link ../tadacube-engine` here. A plain `npm install` brings back the
-pinned version.
+`npm link ../flatcube` here. A plain `npm install` brings back the
+locked version.
 
 Add `?debug` to the URL (e.g. http://localhost:5173/?debug) to label every
 sticker with the place it starts on, so the labels travel with the turns and
@@ -62,7 +63,7 @@ up, so its top row reads D3 D2 D1.
 
 | Folder | What lives there |
 | --- | --- |
-| `@tadacube/engine` | The open engine, installed from [vikdoro/tadacube-engine](https://github.com/vikdoro/tadacube-engine) at a git tag (see its README). `src/model.ts`: slots, moves as permutations, solved check. `src/view.ts`: how the cube is held on the board, rolling it, board-relative move names. `src/notation.ts`, `src/facelets.ts`, `src/cube.ts`: standard notation, solver facelets, a headless cube. `src/board/`: the flat board, pure geometry. `src/vue/`: `createBoard` (the cube, its turn queue and animation clock), `CubeBoard` (SVG + dragging) and the keyboard. |
+| `flatcube` | The open engine, installed from [vikdoro/flatcube](https://github.com/vikdoro/flatcube) (see its README). `src/model.ts`: slots, moves as permutations, solved check. `src/view.ts`: how the cube is held on the board, rolling it, board-relative move names. `src/notation.ts`, `src/facelets.ts`, `src/cube.ts`: standard notation, solver facelets, a headless cube. `src/board/`: the flat board, pure geometry. `src/vue/`: `createBoard` (the cube, its turn queue and animation clock), `CubeBoard` (SVG + dragging) and the keyboard. |
 | `src/cube/` | The drills, pure and stateless. `drills.ts`: building and hinting the undo puzzles. `lily.ts`, `cross.ts`, `corners.ts` and `middle.ts`: the white lily, white cross, white corners and middle layer drills, their goals, hints and puzzles. |
 | `src/board.ts` | The app's one board, made with `createBoard`. |
 | `src/composables/` | App state, one shared instance each. `usePlayer`: the player's turns and undo. `usePractice`: the drill in progress. `useSheets`: which bottom sheet is open. |

@@ -22,7 +22,7 @@
     "wrangler": "^4.151.3"
   },
   "dependencies": {
-    "@tadacube/engine": "github:vikdoro/tadacube-engine#v0.1.0",
+    "flatcube": "github:vikdoro/flatcube",
     "vue": "^3.5.44"
   }
 }

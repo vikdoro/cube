@@ -3,14 +3,14 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /*
- * Where the line between the open engine and the private app falls. The engine (github:vikdoro/tadacube-engine,
+ * Where the line between the open engine and the private app falls. The engine (github:vikdoro/flatcube,
  * installed under node_modules) knows nothing about drills, practice, storage or the app; the app reaches the engine
  * only through its three entry points.
  */
 
 const ROOT = resolve(import.meta.dirname, '..')
-const ENGINE = join(ROOT, 'node_modules/@tadacube/engine')
-const ENTRY_POINTS = ['@tadacube/engine', '@tadacube/engine/board', '@tadacube/engine/vue']
+const ENGINE = join(ROOT, 'node_modules/flatcube')
+const ENTRY_POINTS = ['flatcube', 'flatcube/board', 'flatcube/vue']
 
 const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap(name => {
@@ -27,7 +27,7 @@ const importsOf = (file: string) =>
 describe('the engine package', () => {
   it('is installed as a package with a core, a board and a vue entry point', () => {
     const pkg = JSON.parse(readFileSync(join(ENGINE, 'package.json'), 'utf8'))
-    expect(pkg.name).toBe('@tadacube/engine')
+    expect(pkg.name).toBe('flatcube')
     expect(Object.keys(pkg.exports).sort()).toEqual(['.', './board', './vue'])
   })
 
@@ -69,14 +69,14 @@ describe('the app', () => {
   it('reaches the engine only through its entry points', () => {
     const offenders = sources(join(ROOT, 'src')).flatMap(file =>
       importsOf(file)
-        .filter(spec => spec.includes('@tadacube/engine') || spec.includes('packages/'))
+        .filter(spec => spec.includes('flatcube') || spec.includes('packages/'))
         .filter(spec => !ENTRY_POINTS.includes(spec))
         .map(spec => `${relative(ROOT, file)} → ${spec}`))
     expect(offenders).toEqual([])
   })
 
   it('does use the engine', () => {
-    const users = sources(join(ROOT, 'src')).filter(f => importsOf(f).includes('@tadacube/engine'))
+    const users = sources(join(ROOT, 'src')).filter(f => importsOf(f).includes('flatcube'))
     expect(users.length).toBeGreaterThan(0)
   })
 })

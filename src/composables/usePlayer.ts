@@ -1,6 +1,6 @@
 import { shallowRef } from 'vue'
-import { inverse, type Move } from '@tadacube/engine'
-import { UNDO_MS } from '@tadacube/engine/board'
+import { inverse, type Move } from 'flatcube'
+import { UNDO_MS } from 'flatcube/board'
 import { board as cube } from '../board'
 import { usePractice } from './usePractice'
 

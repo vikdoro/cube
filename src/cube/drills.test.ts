@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { extendPath, pathFromSolved, randomTurns } from './drills'
-import { applyMoves, isSolved, SOLVED, type Move } from '@tadacube/engine'
+import { applyMoves, isSolved, SOLVED, type Move } from 'flatcube'
 
 // a seeded generator, so failures can be reproduced
 function seeded(seed: number) {

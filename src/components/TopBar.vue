@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { isSolved } from '@tadacube/engine'
+import { isSolved } from 'flatcube'
 import { scramble } from '../cube/drills'
 import { board as cube } from '../board'
 import { usePlayer } from '../composables/usePlayer'

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { crossHint, crossPuzzle, dropped, isCross, isSettled, routineTurns, settleDistance } from './cross'
 import { scramble } from './drills'
 import { isLily, petals } from './lily'
-import { applyMove, applyMoves, pieceSlots, SLOTS, SOLVED, type CubeState, type Face, type Move } from '@tadacube/engine'
+import { applyMove, applyMoves, pieceSlots, SLOTS, SOLVED, type CubeState, type Face, type Move } from 'flatcube'
 
 // a seeded generator, so failures can be reproduced
 function seeded(seed: number) {

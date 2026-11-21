@@ -1,4 +1,4 @@
-import { applyMove, FACES, faceOf, permutation, pieceSlots, SLOTS, type CubeState, type Move } from '@tadacube/engine'
+import { applyMove, FACES, faceOf, permutation, pieceSlots, SLOTS, type CubeState, type Move } from 'flatcube'
 import { lilyHint, petals } from './lily'
 
 /**
