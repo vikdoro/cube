@@ -37,4 +37,4 @@ jobs:
       image: semgrep/semgrep:1.100.0
     steps:
       - uses: actions/checkout@v4
-      - run: semgrep scan --config auto --error --metrics off
+      - run: semgrep scan --config p/default --error --metrics off
