@@ -143,7 +143,7 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
 </script>
 
 <template>
-  <Stage :board="board" :pieces="g.current.value.pieces" :targets="g.current.value.targets" :area="g.current.value.area" :arrow="arrow" dim />
+  <Stage :board="board" :pieces="g.current.value.pieces" :targets="g.current.value.targets" :area="g.current.value.area" :arrow="arrow" />
 
   <button class="more" aria-label="More" :aria-expanded="menu" @click="menu = !menu">⋯</button>
   <div v-if="menu" class="scrim" @click="menu = false" />

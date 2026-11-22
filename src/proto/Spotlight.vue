@@ -1,13 +1,13 @@
 <script setup lang="ts">
-// PROTOTYPE: drawn over the board without touching the engine. Dims every sticker but the ones the step is about
-// (and the lid), outlines where the piece is going, and can show the next turn as pulsing ghost arrows. It follows the stickers
-// through turns, since it draws from the same shapes the board does.
+// PROTOTYPE: drawn over the board without touching the engine. Outlines the pieces the step is about, following them
+// through turns (it draws from the same shapes the board does), marks where the piece is going, lets a trigger's area
+// shine softly, and can show the next turn as pulsing ghost arrows.
 import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
-import { boardMove, inLayer, SLOTS, type Move } from 'flatcube'
+import type { Move } from 'flatcube'
 import { arrowPaths, placements, pointsAttr, stickerShapes, VIEW_BOX } from 'flatcube/board'
 import type { Board } from 'flatcube/vue'
 
-const props = defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; dim: boolean; layer?: boolean; area?: number[] }>()
+const props = defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; area?: number[] }>()
 const root = useTemplateRef<SVGSVGElement>('root')
 const box = shallowRef({})
 
@@ -32,19 +32,11 @@ const shapes = computed(() => stickerShapes(b.state.value, b.view.value, b.turni
 const lit = computed(() => new Set(props.pieces))
 const still = computed(() => !b.busy.value)
 
-// the lid is left as it is: it's the finished white face, and dimming it only darkens the top of the board
-const lid = computed(() => boardMove(b.view.value, 'U', 1).layer)
-// a trigger's area stays undimmed too, so what the trigger changes reads as one patch of the board
-const zone = computed(() => new Set(props.area ?? []))
-const dimmed = computed(() => props.dim && props.pieces.length
-  ? shapes.value.filter(s => !lit.value.has(b.state.value[s.slot]) && !zone.value.has(s.slot) && SLOTS[s.slot].face !== lid.value).map(s => pointsAttr(s.points)) : [])
-const zoned = computed(() => (props.area ?? []).map(slot => pointsAttr(placements(b.view.value)[slot].points)))
+// the stickers a trigger ends up changing shine gently, between turns: it's a place on the board, not pieces
+const zoned = computed(() => still.value ? (props.area ?? []).map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const shown = computed(() => shapes.value.filter(s => lit.value.has(b.state.value[s.slot])).map(s => pointsAttr(s.points)))
 const homes = computed(() => still.value ? props.targets.map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.value, props.arrow) : [])
-// the stickers the next turn moves, outlined lightly
-const ring = computed(() => still.value && props.layer && props.arrow
-  ? SLOTS.filter(s => inLayer(s.pos, props.arrow!.layer)).map(s => pointsAttr(placements(b.view.value)[s.index].points)) : [])
 </script>
 
 <template>
@@ -54,9 +46,7 @@ const ring = computed(() => still.value && props.layer && props.arrow
         <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
       </marker>
     </defs>
-    <polygon v-for="(p, i) in dimmed" :key="'d' + i" :points="p" class="dim" />
     <polygon v-for="(p, i) in zoned" :key="'z' + i" :points="p" class="zone" />
-    <polygon v-for="(p, i) in ring" :key="'r' + i" :points="p" class="ring" />
     <polygon v-for="(p, i) in homes" :key="'h' + i" :points="p" class="home" />
     <polygon v-for="(p, i) in shown" :key="'l' + i" :points="p" class="lit" />
     <g class="ghost">
@@ -68,14 +58,13 @@ const ring = computed(() => still.value && props.layer && props.arrow
 
 <style scoped>
 .spot { position: absolute; pointer-events: none; overflow: visible; }
-.dim { fill: var(--plate); opacity: 0.62; transition: opacity 0.3s; }
 .lit { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(10,122,255,0.9)); }
 .home { fill: none; stroke: #fff; stroke-width: 2.2; stroke-dasharray: 5 4; animation: march 1s linear infinite; }
-.ring { fill: var(--accent); opacity: 0.14; }
-.zone { fill: none; stroke: #ff37a0; stroke-opacity: 0.6; stroke-width: 1.4; stroke-linejoin: round; }
+.zone { fill: #fff; opacity: 0; animation: shine 2.4s ease-in-out infinite; }
 .ghost { animation: pulse 1.3s ease-in-out infinite; }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 7 5; }
 .halo { fill: none; stroke: var(--halo); stroke-width: 7; stroke-linecap: round; }
 @keyframes pulse { 0%, 100% { opacity: 0.35 } 50% { opacity: 1 } }
 @keyframes march { to { stroke-dashoffset: -9 } }
+@keyframes shine { 0%, 100% { opacity: 0 } 50% { opacity: 0.28 } }
 </style>

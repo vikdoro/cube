@@ -5,7 +5,7 @@ import type { Move } from 'flatcube'
 import { CubeBoard, type Board } from 'flatcube/vue'
 import Spotlight from './Spotlight.vue'
 
-defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; dim?: boolean; layer?: boolean; area?: number[] }>()
+defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; area?: number[] }>()
 </script>
 
 <template>
@@ -15,7 +15,7 @@ defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | n
     <div class="sizer">
       <div class="boardbox">
         <CubeBoard :board="board" @turn="m => board.turn(m, true)" />
-        <Spotlight :board="board" :pieces="pieces" :targets="targets" :arrow="arrow" :dim="!!dim" :layer="layer" :area="area" />
+        <Spotlight :board="board" :pieces="pieces" :targets="targets" :arrow="arrow" :area="area" />
       </div>
     </div>
   </main>
