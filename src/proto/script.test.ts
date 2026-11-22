@@ -11,6 +11,9 @@ describe('prototype script', () => {
     expect(STEPS[1].free!.goal(STEP_STARTS[1])).toBe(false)
     expect(STEPS[1].free!.goal(STEP_STARTS[2])).toBe(true)
   })
+  it('splits every step’s turns across its slides', () => {
+    for (const step of STEPS) expect(step.slides.reduce((n, sl) => n + sl.turns, 0)).toBe(step.turns.length)
+  })
   it('ends with two layers done', () => {
     expect(isTwoLayers(STEP_STARTS[STEPS.length])).toBe(true)
     expect(isSolved(applyMoves(START, STEPS.flatMap(s => s.turns)))).toBe(true)

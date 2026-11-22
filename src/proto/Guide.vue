@@ -1,67 +1,177 @@
 <script setup lang="ts">
-// PROTOTYPE: everything the player reads is in one panel under the board, so the eyes go one way: the board, then
-// the panel. The step's instruction is two short lines at most, the pieces it talks about lit on the board and the rest
-// dimmed. The player makes every turn; the next one is always drawn on the board as pulsing arrows. The panel turns
-// green when the step is done and red after a wrong turn, whose undo the arrows then show. It keeps one height, so the
-// board never changes size. Rare actions live behind the "⋯" menu.
-import { computed, shallowRef } from 'vue'
-import Bar from './Bar.vue'
+// PROTOTYPE: everything the player reads is in one panel under the board, told like a story: a few short slides per
+// step, with a segment each along the bottom. A slide without turns fills on a timer and moves on; holding the panel
+// pauses it, tapping its right side skips ahead and its left side goes back to read again. A slide with turns fills as
+// the player makes them, the next one drawn on the board as pulsing arrows, and can't be skipped. The panel turns red
+// after a wrong turn, whose undo the arrows then show. It keeps one height, so the board never changes size.
+import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
+import type { Board } from 'flatcube/vue'
 import Stage from './Stage.vue'
 import { STEPS } from './script'
-import type { Board } from 'flatcube/vue'
 import type { Guide } from './useGuide'
 
 const { board, guide: g } = defineProps<{ board: Board; guide: Guide }>()
-const s = g.current
-const hasTurns = computed(() => s.value.turns.length > 0)
+
+interface Slide { step: number; say: string; from: number; to: number; end?: boolean }
+/** Every step's slides in a row, with the range of the step's turns each one waits for, then a last one. */
+const SLIDES: Slide[] = STEPS.flatMap((st, step) => {
+  let at = 0
+  return st.slides.map(sl => ({ step, say: sl.say, from: at, to: (at += sl.turns) }))
+})
+const LAST = STEPS.length - 1
+SLIDES.push({ step: LAST, say: '✓ The edge is home, and both layers are done.', from: STEPS[LAST].turns.length, to: STEPS[LAST].turns.length, end: true })
+
+const acts = (sl: Slide) => sl.to > sl.from
+/** Reading time for a slide: enough for a slow reader, and holding pauses it anyway. */
+const readMs = (sl: Slide) => 1600 + sl.say.length * 55
+
+/** The slide the player has got up to, and the one on show (an earlier one while reading back). */
+const live = shallowRef(0)
+const view = shallowRef(0)
+/** Time spent on the slide on show, for the timed ones. */
+const elapsed = shallowRef(0)
+const held = shallowRef(false)
 const menu = shallowRef(false)
 
-const tone = computed(() => g.wrong.value.length ? 'bad' : g.stepDone.value && hasTurns.value ? 'ok' : '')
-const text = computed(() => {
-  if (g.finished.value) return '✓ The edge is home, and both layers are done.'
-  if (g.wrong.value.length) return 'Not that one. Undo it the way the arrows show.'
-  if (g.stepDone.value && hasTurns.value) return '✓ Done'
-  return s.value.say
-})
-const arrow = computed(() => hasTurns.value && !g.stepDone.value ? g.next.value : null)
+const shown = computed(() => SLIDES[view.value])
+const timed = computed(() => !shown.value.end && (!acts(shown.value) || view.value < live.value))
 
-function restart() { menu.value = false; g.goTo(0) }
+function goLive(k: number) {
+  if (k >= SLIDES.length) return
+  if (SLIDES[k].step !== g.step.value) {
+    if (!g.stepDone.value) return
+    g.advance()
+  }
+  live.value = view.value = k
+  elapsed.value = 0
+  settle()
+}
+
+let settling: ReturnType<typeof setTimeout> | undefined
+/** A slide whose turns are all made moves on after a moment to see the last one land. */
+function settle() {
+  clearTimeout(settling)
+  const sl = SLIDES[live.value]
+  if (sl.end || !acts(sl) || sl.step !== g.step.value) return
+  if (g.done.value >= sl.to && !g.wrong.value.length) {
+    settling = setTimeout(() => { if (g.done.value >= sl.to && !g.wrong.value.length) goLive(live.value + 1) }, 600)
+  }
+}
+watch(() => [g.done.value, g.wrong.value.length], settle)
+
+board.onTurnApplied((_, byPlayer) => {
+  if (!byPlayer) return
+  view.value = live.value
+  // turning while a reading slide is up: jump to the slide that waits for turns
+  const sl = SLIDES[live.value]
+  if (!acts(sl) && !sl.end && g.done.value > 0) {
+    const k = SLIDES.findIndex((s, i) => i > live.value && s.step === sl.step && acts(s))
+    if (k > 0) { live.value = view.value = k; elapsed.value = 0; settle() }
+  }
+})
+
+function forward() {
+  if (view.value < live.value) { view.value++; elapsed.value = 0 }
+  else if (timed.value) goLive(live.value + 1)
+}
+function back() { if (view.value > 0) { view.value--; elapsed.value = 0 } }
+
+let last = performance.now(), frame = 0
+function tick(now: number) {
+  const dt = now - last
+  last = now
+  if (timed.value && !held.value && !menu.value) {
+    elapsed.value += dt
+    if (elapsed.value >= readMs(shown.value)) forward()
+  }
+  frame = requestAnimationFrame(tick)
+}
+frame = requestAnimationFrame(tick)
+onBeforeUnmount(() => { cancelAnimationFrame(frame); clearTimeout(settling) })
+
+// a press that lasts is a hold (pause); a short one is a tap (left third back, the rest forward)
+let downAt = 0, holdTimer: ReturnType<typeof setTimeout> | undefined
+function down(e: PointerEvent) {
+  if ((e.target as Element).closest('button')) return
+  downAt = performance.now()
+  holdTimer = setTimeout(() => { held.value = true }, 220)
+}
+function up(e: PointerEvent) {
+  if (!downAt) return
+  clearTimeout(holdTimer)
+  const wasHeld = held.value
+  held.value = false
+  downAt = 0
+  if (wasHeld) return
+  const box = (e.currentTarget as Element).getBoundingClientRect()
+  if (e.clientX - box.left < box.width / 3) back()
+  else forward()
+}
+function cancel() { clearTimeout(holdTimer); held.value = false; downAt = 0 }
+
+function restart() {
+  menu.value = false
+  g.goTo(0)
+  live.value = view.value = 0
+  elapsed.value = 0
+}
+
+/** How full each slide's segment is. */
+function fill(i: number) {
+  const sl = SLIDES[i]
+  if (i === view.value) {
+    if (timed.value) return Math.min(1, elapsed.value / readMs(sl))
+    return acts(sl) && sl.step === g.step.value ? Math.min(1, (g.done.value - sl.from) / (sl.to - sl.from)) : 0
+  }
+  return i < live.value ? 1 : 0
+}
+
+const wrong = computed(() => g.wrong.value.length > 0 && view.value === live.value)
+const text = computed(() => wrong.value ? 'Not that one. Undo it the way the arrows show.' : shown.value.say)
+const liveActs = computed(() => acts(SLIDES[live.value]) && g.done.value < SLIDES[live.value].to)
+const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.value : null)
 </script>
 
 <template>
-  <Stage :board="board" :pieces="s.pieces" :targets="s.targets" :arrow="arrow" dim />
+  <Stage :board="board" :pieces="g.current.value.pieces" :targets="g.current.value.targets" :arrow="arrow" dim />
 
-  <section class="panel" :class="tone">
-    <div class="meta">
-      <span>Step {{ g.step.value + 1 }} of {{ STEPS.length }} · {{ s.title }}</span>
-      <button class="more" aria-label="More" :aria-expanded="menu" @click="menu = !menu">⋯</button>
-    </div>
+  <button class="more" aria-label="More" :aria-expanded="menu" @click="menu = !menu">⋯</button>
+  <div v-if="menu" class="scrim" @click="menu = false" />
+  <nav v-if="menu" class="menu">
+    <button @click="restart">Start again</button>
+  </nav>
+
+  <section class="panel" :class="{ bad: wrong, ok: shown.end, held }"
+    @pointerdown="down" @pointerup="up" @pointercancel="cancel" @pointerleave="cancel">
     <div class="body">
-      <p class="say" aria-live="polite">{{ text }}</p>
-      <button v-if="!hasTurns" class="btn primary" @click="g.advance()">Got it</button>
-      <button v-else-if="g.finished.value" class="btn primary" @click="g.goTo(0)">Again</button>
-      <button v-else-if="g.stepDone.value" class="btn primary" @click="g.advance()">Next</button>
+      <p :key="view" class="say" aria-live="polite">{{ text }}</p>
+      <button v-if="shown.end" class="btn primary" @click="restart">Again</button>
     </div>
-    <Bar v-if="hasTurns" :turns="s.turns" :done="g.done.value" />
-
-    <div v-if="menu" class="scrim" @click="menu = false" />
-    <nav v-if="menu" class="menu">
-      <button @click="restart">Start again</button>
-    </nav>
+    <div class="story" role="progressbar" :aria-valuemax="SLIDES.length - 1" :aria-valuenow="live">
+      <span v-for="(sl, i) in SLIDES.slice(0, -1)" :key="i" class="seg" :class="{ now: i === view, acts: acts(sl) }">
+        <b :style="{ transform: `scaleX(${fill(i)})` }" :class="{ smooth: !timed || i !== view }" />
+      </span>
+    </div>
   </section>
 </template>
 
 <style scoped>
-.panel { position: relative; z-index: 3; flex: none; height: 124px; box-sizing: border-box; display: grid; grid-template-rows: auto 1fr auto; gap: 6px; padding: 8px 14px 14px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); transition: background-color 0.2s; }
+.panel { position: relative; z-index: 3; flex: none; height: 112px; box-sizing: border-box; display: grid; grid-template-rows: 1fr auto; gap: 10px; padding: 14px 14px 12px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); transition: background-color 0.2s; user-select: none; -webkit-user-select: none; cursor: pointer; }
 .panel.ok { background: #e3f9d0; }
 .panel.bad { background: #ffe3e3; }
-.meta { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font: 600 13px var(--round); }
-.more { appearance: none; border: 0; background: none; width: 36px; height: 28px; margin-right: -8px; border-radius: 8px; color: var(--muted); font: 700 18px var(--round); line-height: 1; cursor: pointer; }
 .body { display: flex; align-items: center; gap: 12px; min-height: 0; }
-.say { flex: 1; margin: 0; font-size: 17px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.say { flex: 1; margin: 0; font-size: 17px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; animation: rise 0.25s ease-out; transition: opacity 0.2s; }
+.held .say { opacity: 0.7; }
 .ok .say { color: #248a3d; font-weight: 600; }
 .bad .say { color: #d70015; font-weight: 600; }
+.story { display: flex; gap: 3px; }
+.seg { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--fill); overflow: hidden; }
+.seg b { position: absolute; inset: 0; background: var(--muted); transform-origin: left; }
+.seg.acts b { background: var(--accent); }
+.seg b.smooth { transition: transform 0.34s ease-in-out; }
+.more { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 4; appearance: none; border: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--card); color: var(--muted); font: 700 18px var(--round); line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; }
 .scrim { position: fixed; inset: 0; z-index: 4; }
-.menu { position: absolute; right: 8px; bottom: calc(100% - 4px); z-index: 5; min-width: 180px; padding: 6px; border-radius: 14px; background: var(--card); box-shadow: 0 2px 6px rgba(0,0,0,0.1), 0 12px 32px rgba(0,0,0,0.18); }
+.menu { position: absolute; top: calc(56px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 5; min-width: 180px; padding: 6px; border-radius: 14px; background: var(--card); box-shadow: 0 2px 6px rgba(0,0,0,0.1), 0 12px 32px rgba(0,0,0,0.18); }
 .menu button { display: block; width: 100%; text-align: left; padding: 10px 12px; border: 0; border-radius: 9px; background: none; color: var(--fg); font: 500 16px var(--sans); cursor: pointer; }
+@keyframes rise { from { opacity: 0; transform: translateY(4px) } }
 </style>

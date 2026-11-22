@@ -27,5 +27,5 @@ onBeforeUnmount(() => detach?.())
 </template>
 
 <style scoped>
-.app { height: 100%; touch-action: none; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding-inline: 12px; padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)); }
+.app { position: relative; height: 100%; touch-action: none; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding-inline: 12px; padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)); }
 </style>

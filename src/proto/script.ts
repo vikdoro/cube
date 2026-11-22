@@ -21,8 +21,11 @@ export const START: CubeState = applyMoves(SOLVED, [...LINE_UP, ...MAKE_ROOM, ..
 
 export interface Step {
   title: string
-  /** What to do, short enough for two lines under the board. */
-  say: string
+  /**
+   * The step's text as story slides, a few lines each. A slide with turns waits for them (that many of the step's
+   * turns, in order); one without is read on a timer.
+   */
+  slides: { say: string; turns: number }[]
   /** The turns that finish the step, in order. */
   turns: Move[]
   /** Sticker ids to light up: they follow their pieces round. */
@@ -36,29 +39,36 @@ export interface Step {
 export const STEPS: Step[] = [
   {
     title: 'Find the edge',
-    say: 'No yellow on it, so it goes in the middle row.',
+    slides: [
+      { say: 'This edge has no yellow on it, so it belongs in the middle row.', turns: 0 },
+      { say: 'Its home is the gap between the green and red sides, outlined on the board.', turns: 0 },
+    ],
     turns: [], pieces: EDGE, targets: EDGE,
   },
   {
     title: 'Line it up',
-    say: 'Turn the yellow face until the edge’s green sticker sits on the green side.',
+    slides: [{ say: 'Turn the yellow face until the edge’s green sticker sits on the green side.', turns: 1 }],
     turns: LINE_UP, pieces: [...EDGE, GREEN_CENTRE], targets: [],
     free: { layer: 'U', goal: s => SLOTS[s.indexOf(GREEN)].face === 'F' },
   },
   {
     title: 'Make room',
-    say: 'It goes towards red. Turn the yellow face, the red side, then both back.',
+    slides: [
+      { say: 'Its other sticker is red, so the edge goes towards the red side.', turns: 0 },
+      { say: 'To make room, turn the yellow face, then the red side, the way the arrows show.', turns: 2 },
+      { say: 'Now turn both back: the yellow face first, then the red side.', turns: 2 },
+    ],
     turns: MAKE_ROOM, pieces: [...EDGE, RED_CENTRE], targets: EDGE,
   },
   {
     title: 'Drop it in',
-    say: 'Now with green: the yellow face the other way, the green side, then both back.',
+    slides: [
+      { say: 'Do the same with the green side, starting with the yellow face the other way.', turns: 2 },
+      { say: 'Turn both back, and the edge drops into its home.', turns: 2 },
+    ],
     turns: DROP_IN, pieces: EDGE, targets: EDGE,
   },
 ]
 
 /** The cube at the start of each step, and at the end. */
 export const STEP_STARTS: CubeState[] = STEPS.reduce<CubeState[]>((all, s) => [...all, applyMoves(all[all.length - 1], s.turns)], [START])
-
-/** Names for the layers, for the turn chips: the colour of the centre. */
-export const LAYER_COLOUR: Record<string, string> = { U: '#ffd60a', R: '#ea3a30', F: '#2fb357', D: '#f4f4f6', L: '#ff8f1f', B: '#1f6fe5' }
