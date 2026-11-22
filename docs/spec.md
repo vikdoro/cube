@@ -17,21 +17,22 @@ Tadacube is an interactive 3×3 cube on a flat board (one face in the middle, th
   - Put in the middle layer (1–5, or full scramble)
   - Make the yellow cross (from a line, an L, a dot, or any shape)
   - Put the yellow edges in place (from a pair side by side, a pair across, or any order)
-- Last level per drill and "intro seen" flags are remembered in `localStorage`.
+- The middle layer drill can be played guided (levels 1–4), switched on in the Practice sheet: see "Guided steps" below.
+- Last level per drill, "intro seen" flags and the guided switch are remembered in `localStorage`.
 - `?debug` labels every sticker with the place it starts on.
-- Unit tests for the drills, text and the engine boundary (9 files, 59 tests, all pass).
+- Unit tests for the drills, the guided middle layer, text and the engine boundary (10 files, 66 tests, all pass).
 
 ## Next up
 
 Confirmed by Viktor 2026-11-21 (the repo has no TODO comments or issues; these came from the method and the README).
 
-0. Guided steps for the middle layer drill (below; spec waiting for Viktor's approval), then the other drills, one pull request each
+0. Guided steps for the other drills, one pull request each, following the middle layer (below; approved by Viktor 2026-11-22)
 1. Drills for the last corners (put them in place, then twist them), finishing the method
 2. Chain the drills into one guided course, as parked on the `learning-full` branch
 3. Show progress across drills, e.g. which levels were completed
 4. Add a lint step
 
-## Guided steps (middle layer first)
+## Guided steps (middle layer done)
 
 A drill can be played guided: the app walks the player through each step, turn by turn, and says why. The UX was pinned down with a throwaway prototype (`?proto`, PR #4). The middle layer drill comes first; the other drills follow in their own pull requests. This is not the parked "guided course" (chaining drills together); it is a way to play one drill.
 
@@ -75,7 +76,8 @@ The player is never forced to undo.
 
 - The story planner is pure and lives next to the drill (`src/cube/middleGuide.ts`): given a cube (and the last turns made), it returns the steps, their slides, the turns each slide waits for, and the pieces to outline.
 - Tests follow the plan from random level 1–4 puzzles to two layers done. They check that each slide's turns add up to its step's, that the plan recovers after a random off-plan turn that keeps the white face, and that no slide text has move letters.
-- The prototype's board overlay and story panel become real components shared by the drills that get guided later. The `?proto` page and PR #4 are removed once this ships.
+- The board overlay (`BoardSpotlight.vue`), the story panel (`GuidePanel.vue`) and the turn following (`useGuide.ts`) are shared: another drill gets guided by giving a planner (`src/cube/guide.ts` has the shape) and adding it to `GUIDES`.
+- Stepping back goes back within the current edge's slides; a step back from an edge's first slide does nothing.
 
 ## Known bugs and limits
 

@@ -16,6 +16,8 @@ export interface PracticeMemory {
   yellowLevel?: number
   /** The last "edges" level played. */
   edgesLevel?: number
+  /** Drills to play guided, as chosen in the Practice sheet. */
+  guided?: Partial<Record<DrillKind, boolean>>
   /** Drills whose steps have been explained once already. */
   seen?: Partial<Record<DrillKind, boolean>>
 }
