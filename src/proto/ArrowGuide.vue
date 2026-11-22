@@ -7,7 +7,7 @@ import { computed, shallowRef, watch } from 'vue'
 import type { Board } from 'flatcube/vue'
 import Mini from './Mini.vue'
 import Stage from './Stage.vue'
-import { LAYER_COLOUR } from './script'
+import { LAYER_COLOUR, STEPS } from './script'
 import type { Guide } from './useGuide'
 
 const { board, guide: g } = defineProps<{ board: Board; guide: Guide }>()
@@ -25,41 +25,39 @@ watch(() => g.stepDone.value, d => {
 </script>
 
 <template>
-  <Stage :board="board" :pieces="s.pieces" :targets="s.targets" :arrow="arrow" layer />
+  <Stage :board="board" :pieces="s.pieces" :targets="s.targets" :arrow="arrow" layer>
+    <template v-if="!hasTurns || why" #bubble>
+      <div class="head">
+        <span class="title">{{ s.title }}</span>
+        <button v-if="why" class="link" @click="why = false">Hide</button>
+      </div>
+      <p v-if="!hasTurns" class="say" aria-live="polite">{{ s.say[g.said.value - 1] }}</p>
+      <p v-else class="say">{{ s.say.join(' ') }}</p>
+    </template>
+  </Stage>
 
-  <section v-if="!hasTurns" class="card">
-    <span class="title">{{ s.title }}</span>
-    <p class="say" aria-live="polite">{{ s.say[g.said.value - 1] }}</p>
-    <div class="row">
-      <button v-if="g.said.value < s.say.length" class="btn primary" @click="g.sayMore()">Next ›</button>
-      <button v-else class="btn primary" @click="g.advance()">Got it</button>
-    </div>
-  </section>
-
-  <template v-else>
-    <section v-if="why" class="card why">
-      <div class="head"><span class="title">{{ s.title }}</span><button class="link" @click="why = false">Hide</button></div>
-      <p class="say">{{ s.say.join(' ') }}</p>
-    </section>
-    <Mini :turns="s.turns" :done="g.done.value" dots expandable
-      :tone="g.wrong.value.length ? 'bad' : g.stepDone.value ? 'ok' : ''"
-      :colour="g.next.value && !g.stepDone.value ? LAYER_COLOUR[g.next.value.layer] : undefined"
-      @expand="why = !why">
-      {{ g.finished.value ? '✓ The edge is home' : g.stepDone.value ? '✓ Done' : caption }}
-      <template #actions>
-        <button v-if="g.finished.value" class="btn" @click="g.goTo(0)">Again</button>
-        <template v-else>
-          <button class="btn icon" aria-label="Turn back" :disabled="g.playing.value || (!g.done.value && !g.wrong.value.length)" @click="g.back()">↶</button>
-          <button class="btn primary" :disabled="g.playing.value || g.stepDone.value" @click="g.play(1)">Do it</button>
-        </template>
+  <Mini :turns="s.turns" :done="g.done.value" dots :expandable="hasTurns"
+    :tone="g.wrong.value.length ? 'bad' : g.stepDone.value && hasTurns ? 'ok' : ''"
+    :colour="hasTurns && g.next.value && !g.stepDone.value ? LAYER_COLOUR[g.next.value.layer] : undefined"
+    @expand="why = !why">
+    <span v-if="!hasTurns" class="muted">Step {{ g.step.value + 1 }} of {{ STEPS.length }}</span>
+    <template v-else>{{ g.finished.value ? '✓ The edge is home' : g.stepDone.value ? '✓ Done' : caption }}</template>
+    <template #actions>
+      <template v-if="!hasTurns">
+        <button v-if="g.said.value < s.say.length" class="btn primary" @click="g.sayMore()">Next ›</button>
+        <button v-else class="btn primary" @click="g.advance()">Got it</button>
       </template>
-    </Mini>
-  </template>
+      <button v-else-if="g.finished.value" class="btn" @click="g.goTo(0)">Again</button>
+      <template v-else>
+        <button class="btn icon" aria-label="Turn back" :disabled="g.playing.value || (!g.done.value && !g.wrong.value.length)" @click="g.back()">↶</button>
+        <button class="btn primary" :disabled="g.playing.value || g.stepDone.value" @click="g.play(1)">Do it</button>
+      </template>
+    </template>
+  </Mini>
 </template>
 
 <style scoped>
-.card { display: grid; gap: 10px; padding: 14px 16px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); align-content: start; }
-.why { animation: rise 0.25s ease-out; }
+.muted { color: var(--muted); font-weight: 600; font-size: 16px; }
 .head { display: flex; align-items: center; gap: 10px; }
 .title { font: 700 15px var(--round); }
 .link { margin-left: auto; appearance: none; border: 0; background: none; color: var(--accent); font: 500 15px var(--sans); cursor: pointer; padding: 4px; }

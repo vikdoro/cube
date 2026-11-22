@@ -2,11 +2,13 @@
 // PROTOTYPE C, "Watch, then try": each step first plays on the board like a short clip, its caption changing with
 // every turn, with controls to pause and step through it. Then it turns back to the start and the player copies it.
 // Arrows only show up after a wrong turn or a long pause. Once the clip starts the card folds to one line with the
-// controls, so the board stays big for watching and for copying; tapping the line shows the step's explanation.
+// controls under the board; tapping the line shows the step's explanation. Cards float over the board, so it keeps
+// its size throughout.
 import { computed, shallowRef, watch } from 'vue'
 import type { Board } from 'flatcube/vue'
 import Mini from './Mini.vue'
 import Stage from './Stage.vue'
+import { STEPS } from './script'
 import type { Guide } from './useGuide'
 
 const { board, guide: g } = defineProps<{ board: Board; guide: Guide }>()
@@ -52,57 +54,49 @@ async function watchAgain() {
 </script>
 
 <template>
-  <Stage :board="board" :pieces="s.pieces" :targets="s.targets" :arrow="arrow" dim />
+  <Stage :board="board" :pieces="s.pieces" :targets="s.targets" :arrow="arrow" dim>
+    <template v-if="!folded || why" #bubble>
+      <div class="head">
+        <span class="title">{{ s.title }}</span>
+        <button v-if="why" class="link" @click="why = false">Hide</button>
+      </div>
+      <p class="say" aria-live="polite">{{ s.say.join(' ') }}</p>
+    </template>
+  </Stage>
 
-  <section v-if="!folded" class="card">
-    <div class="head">
-      <span class="title">{{ s.title }}</span>
-      <span v-if="hasTurns" class="tag">Watch</span>
-    </div>
-    <p class="say" aria-live="polite">{{ s.say.join(' ') }}</p>
-    <div class="row">
+  <Mini :turns="s.turns" :done="g.done.value" :expandable="folded"
+    :tone="g.wrong.value.length ? 'bad' : g.stepDone.value && hasTurns ? 'ok' : ''" @expand="why = !why">
+    <span v-if="!folded" class="muted">Step {{ g.step.value + 1 }} of {{ STEPS.length }}</span>
+    <template v-else><span class="tag" :class="{ you: trying }">{{ trying ? 'You' : 'Watch' }}</span> {{ caption }}</template>
+    <template #actions>
       <button v-if="!hasTurns" class="btn primary" @click="g.advance()">Got it</button>
-      <template v-else>
+      <template v-else-if="!folded">
+        <button class="btn" @click="trying = true">Skip</button>
         <button class="btn primary" @click="g.play(Infinity, 700)">▶ Watch</button>
-        <button class="btn" @click="trying = true">Skip to my turn</button>
       </template>
-    </div>
-  </section>
-
-  <template v-else>
-    <section v-if="why" class="card why">
-      <div class="head"><span class="title">{{ s.title }}</span><button class="link" @click="why = false">Hide</button></div>
-      <p class="say">{{ s.say.join(' ') }}</p>
-    </section>
-    <Mini :turns="s.turns" :done="g.done.value" expandable
-      :tone="g.wrong.value.length ? 'bad' : g.stepDone.value ? 'ok' : ''" @expand="why = !why">
-      <span class="tag" :class="{ you: trying }">{{ trying ? 'You' : 'Watch' }}</span> {{ caption }}
-      <template #actions>
-        <template v-if="!trying">
-          <template v-if="!g.stepDone.value">
-            <button class="btn icon" aria-label="One turn back" :disabled="g.playing.value || !g.done.value" @click="g.back()">◀</button>
-            <button v-if="!g.playing.value" class="btn icon primary" aria-label="Play" @click="g.play(Infinity, 700)">▶</button>
-            <button v-else class="btn icon primary" aria-label="Pause" @click="g.stop()">❚❚</button>
-            <button class="btn icon" aria-label="One turn on" :disabled="g.playing.value" @click="g.play(1)">▶|</button>
-          </template>
-          <template v-else>
-            <button class="btn icon" aria-label="Watch again" @click="watchAgain">↺</button>
-            <button class="btn primary" @click="tryIt">Now you</button>
-          </template>
+      <template v-else-if="!trying">
+        <template v-if="!g.stepDone.value">
+          <button class="btn icon" aria-label="One turn back" :disabled="g.playing.value || !g.done.value" @click="g.back()">◀</button>
+          <button v-if="!g.playing.value" class="btn icon primary" aria-label="Play" @click="g.play(Infinity, 700)">▶</button>
+          <button v-else class="btn icon primary" aria-label="Pause" @click="g.stop()">❚❚</button>
+          <button class="btn icon" aria-label="One turn on" :disabled="g.playing.value" @click="g.play(1)">▶|</button>
         </template>
         <template v-else>
-          <button class="btn icon" aria-label="Watch again" :disabled="g.playing.value" @click="watchAgain">↺</button>
-          <button v-if="g.finished.value" class="btn primary" @click="g.goTo(0)">Again</button>
-          <button v-else-if="g.stepDone.value" class="btn primary" @click="g.advance()">Next step</button>
+          <button class="btn icon" aria-label="Watch again" @click="watchAgain">↺</button>
+          <button class="btn primary" @click="tryIt">Now you</button>
         </template>
       </template>
-    </Mini>
-  </template>
+      <template v-else>
+        <button class="btn icon" aria-label="Watch again" :disabled="g.playing.value" @click="watchAgain">↺</button>
+        <button v-if="g.finished.value" class="btn primary" @click="g.goTo(0)">Again</button>
+        <button v-else-if="g.stepDone.value" class="btn primary" @click="g.advance()">Next step</button>
+      </template>
+    </template>
+  </Mini>
 </template>
 
 <style scoped>
-.card { display: grid; gap: 10px; padding: 14px 16px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); align-content: start; }
-.why { animation: rise 0.25s ease-out; }
+.muted { color: var(--muted); font-weight: 600; font-size: 16px; }
 .head { display: flex; align-items: center; gap: 10px; }
 .title { font: 700 15px var(--round); }
 .link { margin-left: auto; appearance: none; border: 0; background: none; color: var(--accent); font: 500 15px var(--sans); cursor: pointer; padding: 4px; }

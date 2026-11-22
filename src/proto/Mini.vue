@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// PROTOTYPE: the guide folded down to one line and a progress bar while the player turns, so the board gets the room.
-// Tapping the line opens the full card again.
+// PROTOTYPE: the guide's bar under the board: one line, its buttons and the progress. It is always the same height,
+// so the board never changes size; the words go in a bubble over the board. Tapping the line can bring them back.
 import type { Move } from 'flatcube'
 import Bar from './Bar.vue'
 
@@ -9,7 +9,7 @@ defineEmits<{ expand: [] }>()
 </script>
 
 <template>
-  <section class="mini">
+  <section class="mini" :class="tone">
     <div class="line">
       <button class="label" :class="tone" :disabled="!expandable" :aria-label="expandable ? 'Show the instructions' : undefined" @click="$emit('expand')">
         <i v-if="colour" :style="{ background: colour }" />
@@ -18,16 +18,19 @@ defineEmits<{ expand: [] }>()
       </button>
       <slot name="actions" />
     </div>
-    <Bar :turns="turns" :done="done" :dots="dots" />
+    <Bar v-if="turns.length" :turns="turns" :done="done" :dots="dots" />
   </section>
 </template>
 
 <style scoped>
-.mini { display: grid; gap: 8px; padding: 10px 12px; border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); }
+.mini { position: relative; z-index: 3; flex: none; height: 98px; box-sizing: border-box; display: grid; align-content: center; gap: 8px; padding: 10px 12px; border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); }
 .line { display: flex; align-items: center; gap: 6px; min-height: 40px; }
 .label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; appearance: none; border: 0; background: none; padding: 0; text-align: left; color: var(--fg); font: 700 18px var(--round); cursor: pointer; }
 .label:disabled { cursor: default; opacity: 1; }
 .label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini { transition: background-color 0.2s; }
+.mini.ok { background: #e3f9d0; }
+.mini.bad { background: #ffe3e3; }
 .label.bad { color: #d70015; }
 .label.ok { color: #248a3d; }
 .label i { flex: none; width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }

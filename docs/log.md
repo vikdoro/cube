@@ -2,7 +2,7 @@
 
 Newest first: date, what changed, link.
 
-- 2026-11-22: Added throwaway guided-step prototypes on `?proto` (coach card, follow the arrows, watch then try) for one hardcoded middle layer puzzle; the guide folds to one line while the player turns so the board stays big ([PR #4](https://github.com/vikdoro/cube/pull/4))
+- 2026-11-22: Added throwaway guided-step prototypes on `?proto` (coach card, follow the arrows, watch then try) for one hardcoded middle layer puzzle; the board keeps one size, with words in a bubble over it and a fixed bar under it ([PR #4](https://github.com/vikdoro/cube/pull/4))
 - 2026-11-21: Added the yellow edges practice drill ([PR #3](https://github.com/vikdoro/cube/pull/3))
 - 2026-11-21: Added the yellow cross practice drill ([PR #2](https://github.com/vikdoro/cube/pull/2))
 - 2026-11-21: Fixed CI (Semgrep rule pack, actions pinned to SHAs) and tested the pull request pipeline ([PR #1](https://github.com/vikdoro/cube/pull/1))
