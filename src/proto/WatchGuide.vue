@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // PROTOTYPE C, "Watch, then try": each step first plays on the board like a short clip, its caption changing with
 // every turn, with controls to pause and step through it. Then it turns back to the start and the player copies it.
-// Arrows only show up after a wrong turn or a long pause.
+// Arrows only show up after a wrong turn or a long pause. Once the clip starts the card folds to one line with the
+// controls, so the board stays big for watching and for copying; tapping the line shows the step's explanation.
 import { computed, shallowRef, watch } from 'vue'
 import type { Board } from 'flatcube/vue'
-import Bar from './Bar.vue'
+import Mini from './Mini.vue'
 import Stage from './Stage.vue'
 import type { Guide } from './useGuide'
 
@@ -13,13 +14,19 @@ const s = g.current
 const trying = shallowRef(false)
 const hasTurns = computed(() => s.value.turns.length > 0)
 
-watch(() => g.step.value, () => { trying.value = false })
+/** The step's explanation shown over the folded card. */
+const why = shallowRef(false)
+watch(() => g.step.value, () => { trying.value = false; why.value = false })
+board.onTurnApplied(() => { why.value = false })
+/** Turning the step back to its start, which shouldn't open the card on the way. */
+const rewinding = shallowRef(false)
+const folded = computed(() => hasTurns.value && (trying.value || rewinding.value || g.playing.value || g.done.value > 0 || g.wrong.value.length > 0))
 
 const caption = computed(() => {
   if (g.wrong.value.length) return 'Not that one. Undo it.'
   if (trying.value) return g.stepDone.value ? '✓ You did it' : `Your turn: ${s.value.turns.length - g.done.value} to go`
-  if (g.playing.value || g.done.value) return s.value.captions[Math.max(0, g.done.value - 1)]
-  return s.value.say.join(' ')
+  if (g.stepDone.value) return '✓ Done'
+  return s.value.captions[Math.max(0, g.done.value - 1)]
 })
 const arrow = computed(() => {
   if (g.wrong.value.length) return g.next.value
@@ -28,55 +35,80 @@ const arrow = computed(() => {
 })
 
 async function tryIt() {
+  why.value = false
+  rewinding.value = true
   await g.rewind()
+  rewinding.value = false
   trying.value = true
+}
+
+async function watchAgain() {
+  trying.value = false
+  rewinding.value = true
+  await g.rewind()
+  rewinding.value = false
+  g.play(Infinity, 700)
 }
 </script>
 
 <template>
   <Stage :board="board" :pieces="s.pieces" :targets="s.targets" :arrow="arrow" dim />
-  <section class="card">
+
+  <section v-if="!folded" class="card">
     <div class="head">
       <span class="title">{{ s.title }}</span>
-      <span v-if="hasTurns" class="tag" :class="{ you: trying }">{{ trying ? 'You' : 'Watch' }}</span>
+      <span v-if="hasTurns" class="tag">Watch</span>
     </div>
-
-    <template v-if="!hasTurns">
-      <p class="say" aria-live="polite">{{ s.say.join(' ') }}</p>
-      <div class="row"><button class="btn primary" @click="g.advance()">Got it</button></div>
-    </template>
-
-    <template v-else>
-      <p class="say" :class="{ big: g.playing.value || g.done.value || trying, bad: g.wrong.value.length }" aria-live="polite">{{ caption }}</p>
-      <Bar :turns="s.turns" :done="g.done.value" />
-      <div v-if="!trying" class="row">
-        <button class="btn icon" aria-label="Back to the start of the step" :disabled="g.playing.value || !g.done.value" @click="g.rewind()">⏮</button>
-        <button class="btn icon" aria-label="One turn back" :disabled="g.playing.value || !g.done.value" @click="g.back()">◀</button>
-        <button v-if="!g.playing.value" class="btn icon primary" aria-label="Play" :disabled="g.stepDone.value" @click="g.play(Infinity, 700)">▶</button>
-        <button v-else class="btn icon primary" aria-label="Pause" @click="g.stop()">❚❚</button>
-        <button class="btn icon" aria-label="One turn on" :disabled="g.playing.value || g.stepDone.value" @click="g.play(1)">▶|</button>
-        <span class="grow" />
-        <button v-if="g.stepDone.value" class="btn primary" @click="tryIt">Now you</button>
-      </div>
-      <div v-else class="row">
-        <button class="btn" :disabled="g.playing.value" @click="trying = false; g.rewind()">Watch again</button>
-        <span class="grow" />
-        <button v-if="g.finished.value" class="btn primary" @click="g.goTo(0)">Again</button>
-        <button v-else-if="g.stepDone.value" class="btn primary" @click="g.advance()">Next step</button>
-      </div>
-    </template>
+    <p class="say" aria-live="polite">{{ s.say.join(' ') }}</p>
+    <div class="row">
+      <button v-if="!hasTurns" class="btn primary" @click="g.advance()">Got it</button>
+      <template v-else>
+        <button class="btn primary" @click="g.play(Infinity, 700)">▶ Watch</button>
+        <button class="btn" @click="trying = true">Skip to my turn</button>
+      </template>
+    </div>
   </section>
+
+  <template v-else>
+    <section v-if="why" class="card why">
+      <div class="head"><span class="title">{{ s.title }}</span><button class="link" @click="why = false">Hide</button></div>
+      <p class="say">{{ s.say.join(' ') }}</p>
+    </section>
+    <Mini :turns="s.turns" :done="g.done.value" expandable
+      :tone="g.wrong.value.length ? 'bad' : g.stepDone.value ? 'ok' : ''" @expand="why = !why">
+      <span class="tag" :class="{ you: trying }">{{ trying ? 'You' : 'Watch' }}</span> {{ caption }}
+      <template #actions>
+        <template v-if="!trying">
+          <template v-if="!g.stepDone.value">
+            <button class="btn icon" aria-label="One turn back" :disabled="g.playing.value || !g.done.value" @click="g.back()">◀</button>
+            <button v-if="!g.playing.value" class="btn icon primary" aria-label="Play" @click="g.play(Infinity, 700)">▶</button>
+            <button v-else class="btn icon primary" aria-label="Pause" @click="g.stop()">❚❚</button>
+            <button class="btn icon" aria-label="One turn on" :disabled="g.playing.value" @click="g.play(1)">▶|</button>
+          </template>
+          <template v-else>
+            <button class="btn icon" aria-label="Watch again" @click="watchAgain">↺</button>
+            <button class="btn primary" @click="tryIt">Now you</button>
+          </template>
+        </template>
+        <template v-else>
+          <button class="btn icon" aria-label="Watch again" :disabled="g.playing.value" @click="watchAgain">↺</button>
+          <button v-if="g.finished.value" class="btn primary" @click="g.goTo(0)">Again</button>
+          <button v-else-if="g.stepDone.value" class="btn primary" @click="g.advance()">Next step</button>
+        </template>
+      </template>
+    </Mini>
+  </template>
 </template>
 
 <style scoped>
-.card { display: grid; gap: 12px; padding: 14px 16px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); min-height: 196px; align-content: start; }
+.card { display: grid; gap: 10px; padding: 14px 16px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); align-content: start; }
+.why { animation: rise 0.25s ease-out; }
 .head { display: flex; align-items: center; gap: 10px; }
 .title { font: 700 15px var(--round); }
-.tag { font: 700 12px var(--round); text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 999px; background: var(--fill); color: var(--muted); }
+.link { margin-left: auto; appearance: none; border: 0; background: none; color: var(--accent); font: 500 15px var(--sans); cursor: pointer; padding: 4px; }
+.tag { font: 700 11px var(--round); text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 7px; border-radius: 999px; background: var(--fill); color: var(--muted); vertical-align: 2px; }
 .tag.you { background: var(--accent); color: #fff; }
-.say { margin: 0; font-size: 16px; line-height: 1.35; min-height: 44px; }
-.say.big { font: 700 21px var(--round); }
-.say.bad { color: #d70015; }
-.row { display: flex; align-items: center; gap: 8px; min-height: 40px; }
-.grow { flex: 1; }
+.say { margin: 0; font-size: 17px; line-height: 1.35; }
+.row { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px) } }
 </style>
