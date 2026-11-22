@@ -72,7 +72,7 @@ const ring = computed(() => still.value && props.layer && props.arrow
 .lit { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(10,122,255,0.9)); }
 .home { fill: none; stroke: #fff; stroke-width: 2.2; stroke-dasharray: 5 4; animation: march 1s linear infinite; }
 .ring { fill: var(--accent); opacity: 0.14; }
-.zone { fill: rgba(255, 55, 160, 0.08); stroke: #ff37a0; stroke-width: 2.6; stroke-linejoin: round; }
+.zone { fill: none; stroke: #ff37a0; stroke-opacity: 0.6; stroke-width: 1.4; stroke-linejoin: round; }
 .ghost { animation: pulse 1.3s ease-in-out infinite; }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 7 5; }
 .halo { fill: none; stroke: var(--halo); stroke-width: 7; stroke-linecap: round; }
