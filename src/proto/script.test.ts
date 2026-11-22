@@ -21,6 +21,9 @@ describe('prototype script', () => {
     expect(EDGE.every(id => slot(id).join() === '0,1,1')).toBe(true)
     expect(CORNER.every(id => slot(id).join() === '1,1,1')).toBe(true)
   })
+  it('marks only part of the cube as a trigger’s area', () => {
+    for (const step of STEPS.filter(s => s.trigger)) expect(step.area!.length).toBeLessThan(54 / 2)
+  })
   it('ends with two layers done', () => {
     expect(isTwoLayers(STEP_STARTS[STEPS.length])).toBe(true)
     expect(isSolved(applyMoves(START, STEPS.flatMap(s => s.turns)))).toBe(true)

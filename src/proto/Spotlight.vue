@@ -7,7 +7,7 @@ import { boardMove, inLayer, SLOTS, type Move } from 'flatcube'
 import { arrowPaths, placements, pointsAttr, stickerShapes, VIEW_BOX } from 'flatcube/board'
 import type { Board } from 'flatcube/vue'
 
-const props = defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; dim: boolean; layer?: boolean }>()
+const props = defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; dim: boolean; layer?: boolean; area?: number[] }>()
 const root = useTemplateRef<SVGSVGElement>('root')
 const box = shallowRef({})
 
@@ -34,8 +34,11 @@ const still = computed(() => !b.busy.value)
 
 // the lid is left as it is: it's the finished white face, and dimming it only darkens the top of the board
 const lid = computed(() => boardMove(b.view.value, 'U', 1).layer)
+// a trigger's area stays undimmed too, so what the trigger changes reads as one patch of the board
+const zone = computed(() => new Set(props.area ?? []))
 const dimmed = computed(() => props.dim && props.pieces.length
-  ? shapes.value.filter(s => !lit.value.has(b.state.value[s.slot]) && SLOTS[s.slot].face !== lid.value).map(s => pointsAttr(s.points)) : [])
+  ? shapes.value.filter(s => !lit.value.has(b.state.value[s.slot]) && !zone.value.has(s.slot) && SLOTS[s.slot].face !== lid.value).map(s => pointsAttr(s.points)) : [])
+const zoned = computed(() => (props.area ?? []).map(slot => pointsAttr(placements(b.view.value)[slot].points)))
 const shown = computed(() => shapes.value.filter(s => lit.value.has(b.state.value[s.slot])).map(s => pointsAttr(s.points)))
 const homes = computed(() => still.value ? props.targets.map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.value, props.arrow) : [])
@@ -52,6 +55,7 @@ const ring = computed(() => still.value && props.layer && props.arrow
       </marker>
     </defs>
     <polygon v-for="(p, i) in dimmed" :key="'d' + i" :points="p" class="dim" />
+    <polygon v-for="(p, i) in zoned" :key="'z' + i" :points="p" class="zone" />
     <polygon v-for="(p, i) in ring" :key="'r' + i" :points="p" class="ring" />
     <polygon v-for="(p, i) in homes" :key="'h' + i" :points="p" class="home" />
     <polygon v-for="(p, i) in shown" :key="'l' + i" :points="p" class="lit" />
@@ -68,6 +72,7 @@ const ring = computed(() => still.value && props.layer && props.arrow
 .lit { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(10,122,255,0.9)); }
 .home { fill: none; stroke: #fff; stroke-width: 2.2; stroke-dasharray: 5 4; animation: march 1s linear infinite; }
 .ring { fill: var(--accent); opacity: 0.14; }
+.zone { fill: rgba(255, 55, 160, 0.08); stroke: #ff37a0; stroke-width: 2.6; stroke-linejoin: round; }
 .ghost { animation: pulse 1.3s ease-in-out infinite; }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 7 5; }
 .halo { fill: none; stroke: var(--halo); stroke-width: 7; stroke-linecap: round; }

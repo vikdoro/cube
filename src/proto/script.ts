@@ -34,6 +34,9 @@ export interface Step {
   pieces: number[]
   /** Slots to outline where they are: the edge's home. */
   targets: number[]
+  /** The step is a trigger: two layers turned and both turned back. Its area (filled in below) is what it changes. */
+  trigger?: boolean
+  area?: number[]
   /** Any turn of this layer counts until the goal is met (lining up can go either way). */
   free?: { layer: Face; goal: (state: CubeState) => boolean }
 }
@@ -52,24 +55,31 @@ export const STEPS: Step[] = [
     title: 'Make room',
     slides: [
       { say: 'First the top green and red corner joins the edge on the yellow face, so the two can go down together.', turns: 0 },
+      { say: 'That takes a trigger: the yellow face, the red side, then both back. Only the marked area changes.', turns: 0 },
       { say: 'Turn the yellow face to move the edge out of the way.', turns: 1 },
       { say: 'Turn the red side to bring the corner onto the yellow face.', turns: 1 },
       { say: 'Turn the yellow face back, and the edge comes back too.', turns: 1 },
       { say: 'Turn the red side back. The corner stays on the yellow face, right next to the edge.', turns: 1 },
     ],
-    turns: MAKE_ROOM, pieces: [...EDGE, ...CORNER], targets: EDGE,
+    turns: MAKE_ROOM, pieces: [...EDGE, ...CORNER], targets: EDGE, trigger: true,
   },
   {
     title: 'Drop it in',
     slides: [
-      { say: 'The edge and the corner are now a pair. Turn the yellow face to move them round.', turns: 1 },
+      { say: 'The edge and the corner are now a pair. A second trigger, with the green side, puts them down.', turns: 0 },
+      { say: 'Turn the yellow face the other way to move the pair round.', turns: 1 },
       { say: 'Turn the green side to lift the gap up to the yellow face.', turns: 1 },
       { say: 'Turn the yellow face back, and the pair lands right over the gap.', turns: 1 },
       { say: 'Turn the green side down, and both drop home together.', turns: 1 },
     ],
-    turns: DROP_IN, pieces: [...EDGE, ...CORNER], targets: EDGE,
+    turns: DROP_IN, pieces: [...EDGE, ...CORNER], targets: EDGE, trigger: true,
   },
 ]
 
 /** The cube at the start of each step, and at the end. */
 export const STEP_STARTS: CubeState[] = STEPS.reduce<CubeState[]>((all, s) => [...all, applyMoves(all[all.length - 1], s.turns)], [START])
+
+// a trigger's area: the slots that end up different, everything else turned back as it was
+STEPS.forEach((step, i) => {
+  if (step.trigger) step.area = SLOTS.map(s => s.index).filter(slot => STEP_STARTS[i][slot] !== STEP_STARTS[i + 1][slot])
+})
