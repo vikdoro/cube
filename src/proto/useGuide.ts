@@ -6,7 +6,7 @@ import { STEP_STARTS, STEPS } from './script'
 /**
  * PROTOTYPE: follows the player through the hardcoded steps. Every turn on the board is checked
  * against the step: the expected turn moves it on, turning the last one back moves it back, anything else
- * is a wrong turn to undo first. The player makes every turn; undo is the only one played for them.
+ * is a wrong turn to undo first. The player makes every turn; only undoing and going back are played for them.
  */
 export function useGuide(board: Board) {
   const step = shallowRef(0)
@@ -27,8 +27,8 @@ export function useGuide(board: Board) {
     if (wrong.value.length) {
       const last = wrong.value[wrong.value.length - 1]
       wrong.value = sameMove(move, inverse(last)) ? wrong.value.slice(0, -1) : [...wrong.value, move]
-    } else if (s.free && done.value < s.turns.length && move.layer === s.free.layer) {
-      if (s.free.goal(board.state.value)) done.value = s.turns.length
+    } else if (s.free && move.layer === s.free.layer) {
+      done.value = s.free.goal(board.state.value) ? s.turns.length : 0
     } else if (done.value < s.turns.length && sameMove(move, s.turns[done.value])) {
       done.value++
     } else if (done.value > 0 && sameMove(move, inverse(s.turns[done.value - 1]))) {
@@ -61,7 +61,21 @@ export function useGuide(board: Board) {
     if (move) board.turn(inverse(move))
   }
 
-  return { step, done, wrong, current, stepDone, finished, next, goTo, advance, back }
+  const landed = () => new Promise<void>(resolve => { const off = board.onTurnLanded(() => { off(); resolve() }) })
+
+  /** Turn the cube back, on the board, to `doneTo` turns into a step: wrong turns first, then the steps' own. */
+  async function rewindTo(stepIndex: number, doneTo: number) {
+    for (;;) {
+      if (wrong.value.length) board.turn(inverse(wrong.value[wrong.value.length - 1]))
+      else if (step.value === stepIndex && done.value <= doneTo) break
+      else if (done.value > 0) board.turn(inverse(current.value.turns[done.value - 1]))
+      else if (step.value > 0) { step.value--; done.value = current.value.turns.length; continue }
+      else break
+      await landed()
+    }
+  }
+
+  return { step, done, wrong, current, stepDone, finished, next, goTo, advance, back, rewindTo }
 }
 
 export type Guide = ReturnType<typeof useGuide>

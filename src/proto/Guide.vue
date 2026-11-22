@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // PROTOTYPE: everything the player reads is in one panel under the board, told like a story: a few short slides per
 // step, with a segment each along the bottom. A slide without turns fills on a timer and moves on; holding the panel
-// pauses it, tapping its right side skips ahead and its left side goes back to read again. A slide with turns fills as
+// pauses it and tapping its right side skips ahead. Tapping its left side goes back a slide, turning the cube back
+// with it, and everything after is to do again. A slide with turns fills as
 // the player makes them, the next one drawn on the board as pulsing arrows, and can't be skipped. The panel turns red
 // after a wrong turn, whose undo the arrows then show; the end just gets a 🎉. It keeps one height, so the board never changes size.
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
@@ -25,16 +26,17 @@ const acts = (sl: Slide) => sl.to > sl.from
 /** Reading time for a slide: enough for a slow reader, and holding pauses it anyway. */
 const readMs = (sl: Slide) => 1600 + sl.say.length * 55
 
-/** The slide the player has got up to, and the one on show (an earlier one while reading back). */
+/** The slide the player is on. */
 const live = shallowRef(0)
-const view = shallowRef(0)
+/** Turning the cube back after a step back: taps wait. */
+const rewinding = shallowRef(false)
 /** Time spent on the slide on show, for the timed ones. */
 const elapsed = shallowRef(0)
 const held = shallowRef(false)
 const menu = shallowRef(false)
 
-const shown = computed(() => SLIDES[view.value])
-const timed = computed(() => !shown.value.end && (!acts(shown.value) || view.value < live.value))
+const shown = computed(() => SLIDES[live.value])
+const timed = computed(() => !shown.value.end && !acts(shown.value))
 
 function goLive(k: number) {
   if (k >= SLIDES.length) return
@@ -42,7 +44,7 @@ function goLive(k: number) {
     if (!g.stepDone.value) return
     g.advance()
   }
-  live.value = view.value = k
+  live.value = k
   elapsed.value = 0
   settle()
 }
@@ -61,20 +63,27 @@ watch(() => [g.done.value, g.wrong.value.length], settle)
 
 board.onTurnApplied((_, byPlayer) => {
   if (!byPlayer) return
-  view.value = live.value
   // turning while a reading slide is up: jump to the slide that waits for turns
   const sl = SLIDES[live.value]
   if (!acts(sl) && !sl.end && g.done.value > 0) {
     const k = SLIDES.findIndex((s, i) => i > live.value && s.step === sl.step && acts(s))
-    if (k > 0) { live.value = view.value = k; elapsed.value = 0; settle() }
+    if (k > 0) { live.value = k; elapsed.value = 0; settle() }
   }
 })
 
 function forward() {
-  if (view.value < live.value) { view.value++; elapsed.value = 0 }
-  else if (timed.value) goLive(live.value + 1)
+  if (timed.value && !rewinding.value) goLive(live.value + 1)
 }
-function back() { if (view.value > 0) { view.value--; elapsed.value = 0 } }
+async function back() {
+  if (live.value === 0 || rewinding.value || board.busy.value) return
+  clearTimeout(settling)
+  const k = live.value - 1
+  rewinding.value = true
+  await g.rewindTo(SLIDES[k].step, SLIDES[k].from)
+  rewinding.value = false
+  live.value = k
+  elapsed.value = 0
+}
 
 let last = performance.now(), frame = 0
 function tick(now: number) {
@@ -112,21 +121,21 @@ function cancel() { clearTimeout(holdTimer); held.value = false; downAt = 0 }
 function restart() {
   menu.value = false
   g.goTo(0)
-  live.value = view.value = 0
+  live.value = 0
   elapsed.value = 0
 }
 
 /** How full each slide's segment is. */
 function fill(i: number) {
   const sl = SLIDES[i]
-  if (i === view.value) {
+  if (i === live.value) {
     if (timed.value) return Math.min(1, elapsed.value / readMs(sl))
-    return acts(sl) && sl.step === g.step.value ? Math.min(1, (g.done.value - sl.from) / (sl.to - sl.from)) : 0
+    return acts(sl) && sl.step === g.step.value ? Math.max(0, Math.min(1, (g.done.value - sl.from) / (sl.to - sl.from))) : 0
   }
   return i < live.value ? 1 : 0
 }
 
-const wrong = computed(() => g.wrong.value.length > 0 && view.value === live.value)
+const wrong = computed(() => g.wrong.value.length > 0)
 const text = computed(() => wrong.value ? 'Not that one. Undo it the way the arrows show.' : shown.value.say)
 
 const liveActs = computed(() => acts(SLIDES[live.value]) && g.done.value < SLIDES[live.value].to)
@@ -145,12 +154,12 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
   <section class="panel" :class="{ bad: wrong, held }"
     @pointerdown="down" @pointerup="up" @pointercancel="cancel" @pointerleave="cancel">
     <div class="body">
-      <p :key="view" class="say" aria-live="polite">{{ text }}</p>
+      <p :key="live" class="say" aria-live="polite">{{ text }}</p>
       <button v-if="shown.end" class="btn primary" @click="restart">Again</button>
     </div>
     <div class="story" role="progressbar" :aria-valuemax="SLIDES.length - 1" :aria-valuenow="live">
-      <span v-for="(_, i) in SLIDES.slice(0, -1)" :key="i" class="seg" :class="{ now: i === view }">
-        <b :style="{ transform: `scaleX(${fill(i)})` }" :class="{ smooth: !timed || i !== view }" />
+      <span v-for="(_, i) in SLIDES.slice(0, -1)" :key="i" class="seg" :class="{ now: i === live }">
+        <b :style="{ transform: `scaleX(${fill(i)})` }" :class="{ smooth: !timed || i !== live }" />
       </span>
     </div>
   </section>

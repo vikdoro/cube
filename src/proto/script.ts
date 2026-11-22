@@ -13,7 +13,7 @@ const DROP_IN = [t('U', 3), t('F', 3), t('U'), t('F')]
 
 /** The green and red edge, as its two sticker ids (also its home slots). */
 export const EDGE = SLOTS.filter(s => s.pos.join() === '1,0,1').map(s => s.index)
-/** The green and red corner of the white face, under the edge's home, which the routine lifts out and puts back. */
+/** The top green and red corner (on the white lid, by the edge's home), which the routine brings out and puts back. */
 export const CORNER = SLOTS.filter(s => s.pos.join() === '1,-1,1').map(s => s.index)
 const GREEN = EDGE.find(id => SLOTS[id].face === 'F')!
 const GREEN_CENTRE = 22
@@ -51,11 +51,11 @@ export const STEPS: Step[] = [
   {
     title: 'Make room',
     slides: [
-      { say: 'The green and red corner under the gap has to come up next to the edge first, so the two can go down together.', turns: 0 },
+      { say: 'First the top green and red corner joins the edge on the yellow face, so the two can go down together.', turns: 0 },
       { say: 'Turn the yellow face to move the edge out of the way.', turns: 1 },
-      { say: 'Turn the red side to lift the corner up.', turns: 1 },
+      { say: 'Turn the red side to bring the corner onto the yellow face.', turns: 1 },
       { say: 'Turn the yellow face back, and the edge comes back too.', turns: 1 },
-      { say: 'Turn the red side back down. The corner stays up, right next to the edge.', turns: 1 },
+      { say: 'Turn the red side back. The corner stays on the yellow face, right next to the edge.', turns: 1 },
     ],
     turns: MAKE_ROOM, pieces: [...EDGE, ...CORNER], targets: EDGE,
   },
