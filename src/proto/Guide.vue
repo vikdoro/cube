@@ -3,7 +3,7 @@
 // step, with a segment each along the bottom. A slide without turns fills on a timer and moves on; holding the panel
 // pauses it, tapping its right side skips ahead and its left side goes back to read again. A slide with turns fills as
 // the player makes them, the next one drawn on the board as pulsing arrows, and can't be skipped. The panel turns red
-// after a wrong turn, whose undo the arrows then show. It keeps one height, so the board never changes size.
+// after a wrong turn, whose undo the arrows then show; the end just gets a 🎉. It keeps one height, so the board never changes size.
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import type { Board } from 'flatcube/vue'
 import Stage from './Stage.vue'
@@ -19,7 +19,7 @@ const SLIDES: Slide[] = STEPS.flatMap((st, step) => {
   return st.slides.map(sl => ({ step, say: sl.say, from: at, to: (at += sl.turns) }))
 })
 const LAST = STEPS.length - 1
-SLIDES.push({ step: LAST, say: '✓ The edge is home, and both layers are done.', from: STEPS[LAST].turns.length, to: STEPS[LAST].turns.length, end: true })
+SLIDES.push({ step: LAST, say: 'The edge is home, and both layers are done. 🎉', from: STEPS[LAST].turns.length, to: STEPS[LAST].turns.length, end: true })
 
 const acts = (sl: Slide) => sl.to > sl.from
 /** Reading time for a slide: enough for a slow reader, and holding pauses it anyway. */
@@ -141,7 +141,7 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
     <button @click="restart">Start again</button>
   </nav>
 
-  <section class="panel" :class="{ bad: wrong, ok: shown.end, held }"
+  <section class="panel" :class="{ bad: wrong, held }"
     @pointerdown="down" @pointerup="up" @pointercancel="cancel" @pointerleave="cancel">
     <div class="body">
       <p :key="view" class="say" aria-live="polite">{{ text }}</p>
@@ -157,12 +157,10 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
 
 <style scoped>
 .panel { position: relative; z-index: 3; flex: none; height: 112px; box-sizing: border-box; display: grid; grid-template-rows: 1fr auto; gap: 10px; padding: 14px 14px 12px; border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); transition: background-color 0.2s; user-select: none; -webkit-user-select: none; cursor: pointer; }
-.panel.ok { background: #e3f9d0; }
 .panel.bad { background: #ffe3e3; }
 .body { display: flex; align-items: center; gap: 12px; min-height: 0; }
 .say { flex: 1; margin: 0; font-size: 17px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; animation: rise 0.25s ease-out; transition: opacity 0.2s; }
 .held .say { opacity: 0.7; }
-.ok .say { color: #248a3d; font-weight: 600; }
 .bad .say { color: #d70015; font-weight: 600; }
 .story { display: flex; gap: 3px; }
 .seg { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--fill); overflow: hidden; }
