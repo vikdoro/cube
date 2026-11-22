@@ -138,12 +138,14 @@ function fill(i: number) {
 const wrong = computed(() => g.wrong.value.length > 0)
 const text = computed(() => wrong.value ? 'Not that one. Undo it the way the arrows show.' : shown.value.say)
 
+/** A trigger's area shows until its first turn: it says what's about to change, then the turns speak for themselves. */
+const area = computed(() => g.done.value === 0 && !g.wrong.value.length ? g.current.value.area : undefined)
 const liveActs = computed(() => acts(SLIDES[live.value]) && g.done.value < SLIDES[live.value].to)
 const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.value : null)
 </script>
 
 <template>
-  <Stage :board="board" :pieces="g.current.value.pieces" :targets="g.current.value.targets" :area="g.current.value.area" :arrow="arrow" />
+  <Stage :board="board" :pieces="g.current.value.pieces" :targets="g.current.value.targets" :area="area" :arrow="arrow" />
 
   <button class="more" aria-label="More" :aria-expanded="menu" @click="menu = !menu">⋯</button>
   <div v-if="menu" class="scrim" @click="menu = false" />

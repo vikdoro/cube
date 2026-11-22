@@ -55,7 +55,7 @@ export const STEPS: Step[] = [
     title: 'Make room',
     slides: [
       { say: 'First the top green and red corner joins the edge on the yellow face, so the two can go down together.', turns: 0 },
-      { say: 'That takes a trigger: the yellow face, the red side, then both back. Only the softly shining area changes.', turns: 0 },
+      { say: 'That takes a trigger: the yellow face, the red side, then both back. Only the area lit up on the board changes.', turns: 0 },
       { say: 'Turn the yellow face to move the edge out of the way.', turns: 1 },
       { say: 'Turn the red side to bring the corner onto the yellow face.', turns: 1 },
       { say: 'Turn the yellow face back, and the edge comes back too.', turns: 1 },
