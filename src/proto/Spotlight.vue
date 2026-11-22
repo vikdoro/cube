@@ -1,13 +1,13 @@
 <script setup lang="ts">
 // PROTOTYPE: drawn over the board without touching the engine. Outlines the pieces the step is about, following them
-// through turns (it draws from the same shapes the board does), marks where the piece is going, gives a soft glow to
-// where a trigger's layers cross, and can show the next turn as pulsing ghost arrows.
+// through turns (it draws from the same shapes the board does), marks where the piece is going, and can show the next
+// turn as pulsing ghost arrows.
 import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
 import type { Move } from 'flatcube'
 import { arrowPaths, placements, pointsAttr, stickerShapes, VIEW_BOX } from 'flatcube/board'
 import type { Board } from 'flatcube/vue'
 
-const props = defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null; area?: number[] }>()
+const props = defineProps<{ board: Board; pieces: number[]; targets: number[]; arrow: Move | null }>()
 const root = useTemplateRef<SVGSVGElement>('root')
 const box = shallowRef({})
 
@@ -32,9 +32,6 @@ const shapes = computed(() => stickerShapes(b.state.value, b.view.value, b.turni
 const lit = computed(() => new Set(props.pieces))
 const still = computed(() => !b.busy.value)
 
-// where a trigger's layers cross, glowing as one soft patch: the stickers drawn with a wide stroke merge across the
-// gaps between them, then blurred
-const zoned = computed(() => still.value ? (props.area ?? []).map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const shown = computed(() => shapes.value.filter(s => lit.value.has(b.state.value[s.slot])).map(s => pointsAttr(s.points)))
 const homes = computed(() => still.value ? props.targets.map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.value, props.arrow) : [])
@@ -47,14 +44,6 @@ const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.valu
         <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)" />
       </marker>
     </defs>
-    <template v-if="zoned.length">
-      <defs>
-        <filter id="zone-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" /></filter>
-      </defs>
-      <g class="zone" filter="url(#zone-soft)">
-        <polygon v-for="(p, i) in zoned" :key="'z' + i" :points="p" />
-      </g>
-    </template>
     <polygon v-for="(p, i) in homes" :key="'h' + i" :points="p" class="home" />
     <polygon v-for="(p, i) in shown" :key="'l' + i" :points="p" class="lit" />
     <g class="ghost">
@@ -67,8 +56,6 @@ const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.valu
 <style scoped>
 .spot { position: absolute; pointer-events: none; overflow: visible; }
 .lit { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(10,122,255,0.9)); }
-.zone polygon { fill: #fff; stroke: #fff; stroke-width: 10; stroke-linejoin: round; }
-.zone { opacity: 0.32; }
 .home { fill: none; stroke: #fff; stroke-width: 2.2; stroke-dasharray: 5 4; animation: march 1s linear infinite; }
 .ghost { animation: pulse 1.3s ease-in-out infinite; }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 7 5; }

@@ -1,4 +1,4 @@
-import { applyMoves, inLayer, inverse, SLOTS, SOLVED, type CubeState, type Face, type Move } from 'flatcube'
+import { applyMoves, inverse, SLOTS, SOLVED, type CubeState, type Face, type Move } from 'flatcube'
 
 /**
  * PROTOTYPE (throwaway): one hardcoded middle layer puzzle, broken into small steps, to try out ways of guiding the
@@ -36,8 +36,6 @@ export interface Step {
   targets: number[]
   /** The step is a trigger with this side: the yellow face and the side turned, then both back. */
   trigger?: Face
-  /** Where the trigger's two layers cross (filled in below): the pieces it works around. */
-  area?: number[]
   /** Any turn of this layer counts until the goal is met (lining up can go either way). */
   free?: { layer: Face; goal: (state: CubeState) => boolean }
 }
@@ -56,7 +54,7 @@ export const STEPS: Step[] = [
     title: 'Make room',
     slides: [
       { say: 'First the top green and red corner joins the edge on the yellow face, so the two can go down together.', turns: 0 },
-      { say: 'That takes a trigger: the yellow face, the red side, then both back. It works around where the two cross, lit up on the board.', turns: 0 },
+      { say: 'That takes a trigger: the yellow face, the red side, then both back.', turns: 0 },
       { say: 'Turn the yellow face to move the edge out of the way.', turns: 1 },
       { say: 'Turn the red side to bring the corner onto the yellow face.', turns: 1 },
       { say: 'Turn the yellow face back, and the edge comes back too.', turns: 1 },
@@ -80,7 +78,3 @@ export const STEPS: Step[] = [
 /** The cube at the start of each step, and at the end. */
 export const STEP_STARTS: CubeState[] = STEPS.reduce<CubeState[]>((all, s) => [...all, applyMoves(all[all.length - 1], s.turns)], [START])
 
-// a trigger's crossing: the three pieces in both the yellow layer and the side's
-for (const step of STEPS) {
-  if (step.trigger) step.area = SLOTS.filter(s => inLayer(s.pos, 'U') && inLayer(s.pos, step.trigger!)).map(s => s.index)
-}
