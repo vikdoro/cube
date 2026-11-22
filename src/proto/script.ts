@@ -21,12 +21,10 @@ export const START: CubeState = applyMoves(SOLVED, [...LINE_UP, ...MAKE_ROOM, ..
 
 export interface Step {
   title: string
-  /** The explanation, shown a sentence at a time. */
-  say: string[]
+  /** What to do, short enough for two lines under the board. */
+  say: string
   /** The turns that finish the step, in order. */
   turns: Move[]
-  /** A few words for each turn. */
-  captions: string[]
   /** Sticker ids to light up: they follow their pieces round. */
   pieces: number[]
   /** Slots to outline where they are: the edge's home. */
@@ -38,26 +36,24 @@ export interface Step {
 export const STEPS: Step[] = [
   {
     title: 'Find the edge',
-    say: ['This edge has no yellow on it, so it belongs in the middle row.', 'Its home is the gap between the green and red sides.'],
-    turns: [], captions: [], pieces: EDGE, targets: EDGE,
+    say: 'No yellow on it, so it goes in the middle row.',
+    turns: [], pieces: EDGE, targets: EDGE,
   },
   {
     title: 'Line it up',
-    say: ['Turn the yellow face until the edge’s green sticker is on the green side.'],
-    turns: LINE_UP, captions: ['Yellow face'], pieces: [...EDGE, GREEN_CENTRE], targets: [],
+    say: 'Turn the yellow face until the edge’s green sticker sits on the green side.',
+    turns: LINE_UP, pieces: [...EDGE, GREEN_CENTRE], targets: [],
     free: { layer: 'U', goal: s => SLOTS[s.indexOf(GREEN)].face === 'F' },
   },
   {
     title: 'Make room',
-    say: ['Its other sticker is red, so it goes towards the red side.', 'Four turns: the yellow face, the red side, then both back.'],
-    turns: MAKE_ROOM, captions: ['Yellow face', 'Red side', 'Yellow face back', 'Red side back'],
-    pieces: [...EDGE, RED_CENTRE], targets: EDGE,
+    say: 'It goes towards red. Turn the yellow face, the red side, then both back.',
+    turns: MAKE_ROOM, pieces: [...EDGE, RED_CENTRE], targets: EDGE,
   },
   {
     title: 'Drop it in',
-    say: ['Now four more with the green side.', 'The yellow face the other way, the green side, then both back.'],
-    turns: DROP_IN, captions: ['Yellow face, other way', 'Green side', 'Yellow face back', 'Green side back'],
-    pieces: EDGE, targets: EDGE,
+    say: 'Now with green: the yellow face the other way, the green side, then both back.',
+    turns: DROP_IN, pieces: EDGE, targets: EDGE,
   },
 ]
 
