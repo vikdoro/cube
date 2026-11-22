@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // PROTOTYPE: drawn over the board without touching the engine. Outlines the pieces the step is about, following them
-// through turns (it draws from the same shapes the board does), marks where the piece is going, sweeps a soft light
-// along the outline of a trigger's area, and can show the next turn as pulsing ghost arrows.
+// through turns (it draws from the same shapes the board does), marks where the piece is going, gives a soft glow to
+// where a trigger's layers cross, and can show the next turn as pulsing ghost arrows.
 import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
 import type { Move } from 'flatcube'
 import { arrowPaths, placements, pointsAttr, stickerShapes, VIEW_BOX } from 'flatcube/board'
@@ -32,9 +32,8 @@ const shapes = computed(() => stickerShapes(b.state.value, b.view.value, b.turni
 const lit = computed(() => new Set(props.pieces))
 const still = computed(() => !b.busy.value)
 
-// the stickers a trigger ends up changing, outlined as one area: their shapes drawn with a wide stroke merge across the
-// gaps between them, and a narrower one cut out of that leaves a thin line round the whole area
-const [vx, vy, vw, vh] = VIEW_BOX.split(' ').map(Number)
+// where a trigger's layers cross, glowing as one soft patch: the stickers drawn with a wide stroke merge across the
+// gaps between them, then blurred
 const zoned = computed(() => still.value ? (props.area ?? []).map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const shown = computed(() => shapes.value.filter(s => lit.value.has(b.state.value[s.slot])).map(s => pointsAttr(s.points)))
 const homes = computed(() => still.value ? props.targets.map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
@@ -50,21 +49,10 @@ const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.valu
     </defs>
     <template v-if="zoned.length">
       <defs>
-        <mask id="zone-line" maskUnits="userSpaceOnUse" :x="vx" :y="vy" :width="vw" :height="vh">
-          <g fill="#fff" stroke="#fff" stroke-width="12" stroke-linejoin="round"><polygon v-for="(p, i) in zoned" :key="i" :points="p" /></g>
-          <g fill="#000" stroke="#000" stroke-width="8" stroke-linejoin="round"><polygon v-for="(p, i) in zoned" :key="i" :points="p" /></g>
-        </mask>
-        <linearGradient id="zone-band" gradientUnits="userSpaceOnUse" :x1="vx - vw * 0.4" :y1="vy" :x2="vx" :y2="vy + vh * 0.2">
-          <stop offset="0" stop-color="#fff" stop-opacity="0" />
-          <stop offset="0.5" stop-color="#fff" stop-opacity="0.75" />
-          <stop offset="1" stop-color="#fff" stop-opacity="0" />
-        </linearGradient>
+        <filter id="zone-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" /></filter>
       </defs>
-      <g mask="url(#zone-line)">
-        <rect :x="vx" :y="vy" :width="vw" :height="vh" fill="#fff" opacity="0.18" />
-        <rect :x="vx - vw * 0.4" :y="vy" :width="vw * 0.4" :height="vh" fill="url(#zone-band)">
-          <animateTransform attributeName="transform" type="translate" from="0 0" :to="`${vw * 1.4} 0`" dur="2.4s" repeatCount="indefinite" />
-        </rect>
+      <g class="zone" filter="url(#zone-soft)">
+        <polygon v-for="(p, i) in zoned" :key="'z' + i" :points="p" />
       </g>
     </template>
     <polygon v-for="(p, i) in homes" :key="'h' + i" :points="p" class="home" />
@@ -79,6 +67,8 @@ const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.valu
 <style scoped>
 .spot { position: absolute; pointer-events: none; overflow: visible; }
 .lit { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(10,122,255,0.9)); }
+.zone polygon { fill: #fff; stroke: #fff; stroke-width: 10; stroke-linejoin: round; }
+.zone { opacity: 0.32; }
 .home { fill: none; stroke: #fff; stroke-width: 2.2; stroke-dasharray: 5 4; animation: march 1s linear infinite; }
 .ghost { animation: pulse 1.3s ease-in-out infinite; }
 .arrow { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 7 5; }
