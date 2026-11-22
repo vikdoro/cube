@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { applyMoves, isSolved, SLOTS } from 'flatcube'
 import { isTwoLayers } from '../cube/middle'
-import { CORNER, EDGE, START, STEP_STARTS, STEPS, TERMS } from './script'
+import { CORNER, EDGE, START, STEP_STARTS, STEPS } from './script'
 
 describe('prototype script', () => {
   it('starts one edge short of two layers', () => {
@@ -13,9 +13,6 @@ describe('prototype script', () => {
   })
   it('splits every step’s turns across its slides', () => {
     for (const step of STEPS) expect(step.slides.reduce((n, sl) => n + sl.turns, 0)).toBe(step.turns.length)
-  })
-  it('only links words that have a meaning', () => {
-    for (const sl of STEPS.flatMap(s => s.slides)) for (const [, term] of sl.say.matchAll(/\]\(([^)]+)\)/g)) expect(TERMS[term]).toBeTruthy()
   })
   it('lifts the white corner next to the edge after making room', () => {
     // the slides say so: the corner up in the yellow layer, beside the edge in front
