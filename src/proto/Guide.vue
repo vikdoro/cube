@@ -3,11 +3,13 @@
 // step, with a segment each along the bottom. A slide without turns fills on a timer and moves on; holding the panel
 // pauses it, tapping its right side skips ahead and its left side goes back to read again. A slide with turns fills as
 // the player makes them, the next one drawn on the board as pulsing arrows, and can't be skipped. The panel turns red
-// after a wrong turn, whose undo the arrows then show; the end just gets a 🎉. It keeps one height, so the board never changes size.
+// after a wrong turn, whose undo the arrows then show; the end just gets a 🎉. Underlined words can be tapped: a
+// line about them takes the panel's place and the cube lights up what they mean, the story paused meanwhile; any tap
+// goes back. It keeps one height, so the board never changes size.
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import type { Board } from 'flatcube/vue'
 import Stage from './Stage.vue'
-import { STEPS } from './script'
+import { STEPS, TERMS } from './script'
 import type { Guide } from './useGuide'
 
 const { board, guide: g } = defineProps<{ board: Board; guide: Guide }>()
@@ -32,6 +34,9 @@ const view = shallowRef(0)
 const elapsed = shallowRef(0)
 const held = shallowRef(false)
 const menu = shallowRef(false)
+/** The word tapped, and the slots it lit when tapped (the cube can't move while it's open). */
+const term = shallowRef<{ key: string; slots: number[] } | null>(null)
+function openTerm(key: string) { term.value = { key, slots: TERMS[key].slots(board.state.value) } }
 
 const shown = computed(() => SLIDES[view.value])
 const timed = computed(() => !shown.value.end && (!acts(shown.value) || view.value < live.value))
@@ -60,6 +65,7 @@ function settle() {
 watch(() => [g.done.value, g.wrong.value.length], settle)
 
 board.onTurnApplied((_, byPlayer) => {
+  term.value = null
   if (!byPlayer) return
   view.value = live.value
   // turning while a reading slide is up: jump to the slide that waits for turns
@@ -80,7 +86,7 @@ let last = performance.now(), frame = 0
 function tick(now: number) {
   const dt = now - last
   last = now
-  if (timed.value && !held.value && !menu.value) {
+  if (timed.value && !held.value && !menu.value && !term.value) {
     elapsed.value += dt
     if (elapsed.value >= readMs(shown.value)) forward()
   }
@@ -93,6 +99,8 @@ onBeforeUnmount(() => { cancelAnimationFrame(frame); clearTimeout(settling) })
 let downAt = 0, holdTimer: ReturnType<typeof setTimeout> | undefined
 function down(e: PointerEvent) {
   if ((e.target as Element).closest('button')) return
+  // with a word open, a tap on the panel just closes it
+  if (term.value) { term.value = null; return }
   downAt = performance.now()
   holdTimer = setTimeout(() => { held.value = true }, 220)
 }
@@ -128,12 +136,18 @@ function fill(i: number) {
 
 const wrong = computed(() => g.wrong.value.length > 0 && view.value === live.value)
 const text = computed(() => wrong.value ? 'Not that one. Undo it the way the arrows show.' : shown.value.say)
+/** The text split into plain runs and [tappable](term) words. */
+const parts = computed(() => text.value.split(/(\[[^\]]+\]\([^)]+\))/).filter(Boolean).map(p => {
+  const m = p.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+  return m ? { text: m[1], term: m[2] } : { text: p, term: '' }
+}))
+const pieces = computed(() => term.value ? term.value.slots.map(slot => board.state.value[slot]) : g.current.value.pieces)
 const liveActs = computed(() => acts(SLIDES[live.value]) && g.done.value < SLIDES[live.value].to)
-const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.value : null)
+const arrow = computed(() => term.value ? null : g.wrong.value.length || liveActs.value ? g.next.value : null)
 </script>
 
 <template>
-  <Stage :board="board" :pieces="g.current.value.pieces" :targets="g.current.value.targets" :arrow="arrow" dim />
+  <Stage :board="board" :pieces="pieces" :targets="term ? [] : g.current.value.targets" :arrow="arrow" dim />
 
   <button class="more" aria-label="More" :aria-expanded="menu" @click="menu = !menu">⋯</button>
   <div v-if="menu" class="scrim" @click="menu = false" />
@@ -144,7 +158,13 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
   <section class="panel" :class="{ bad: wrong, held }"
     @pointerdown="down" @pointerup="up" @pointercancel="cancel" @pointerleave="cancel">
     <div class="body">
-      <p :key="view" class="say" aria-live="polite">{{ text }}</p>
+      <p v-if="term" :key="'t' + term.key" class="say explain" aria-live="polite">{{ TERMS[term.key].say }}</p>
+      <p v-else :key="view" class="say" aria-live="polite">
+        <template v-for="(part, i) in parts" :key="i">
+          <button v-if="part.term" class="term" @click="openTerm(part.term)">{{ part.text }}</button>
+          <template v-else>{{ part.text }}</template>
+        </template>
+      </p>
       <button v-if="shown.end" class="btn primary" @click="restart">Again</button>
     </div>
     <div class="story" role="progressbar" :aria-valuemax="SLIDES.length - 1" :aria-valuenow="live">
@@ -153,6 +173,8 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
       </span>
     </div>
   </section>
+
+  <div v-if="term" class="scrim under" @click="term = null" />
 </template>
 
 <style scoped>
@@ -162,6 +184,8 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
 .say { flex: 1; margin: 0; font-size: 17px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; animation: rise 0.25s ease-out; transition: opacity 0.2s; }
 .held .say { opacity: 0.7; }
 .bad .say { color: #d70015; font-weight: 600; }
+.term { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: inherit; text-decoration: underline dotted var(--accent) 2px; text-underline-offset: 3px; cursor: pointer; }
+.say.explain { font-size: 16px; color: var(--accent); }
 .story { display: flex; gap: 3px; }
 .seg { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--fill); overflow: hidden; }
 .seg b { position: absolute; inset: 0; background: var(--muted); transform-origin: left; }
@@ -169,6 +193,8 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
 .seg b.smooth { transition: transform 0.34s ease-in-out; }
 .more { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 4; appearance: none; border: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--card); color: var(--muted); font: 700 18px var(--round); line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; }
 .scrim { position: fixed; inset: 0; z-index: 4; }
+/* under the panel, so another word can be tapped straight away */
+.scrim.under { z-index: 2; }
 .menu { position: absolute; top: calc(56px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 5; min-width: 180px; padding: 6px; border-radius: 14px; background: var(--card); box-shadow: 0 2px 6px rgba(0,0,0,0.1), 0 12px 32px rgba(0,0,0,0.18); }
 .menu button { display: block; width: 100%; text-align: left; padding: 10px 12px; border: 0; border-radius: 9px; background: none; color: var(--fg); font: 500 16px var(--sans); cursor: pointer; }
 @keyframes rise { from { opacity: 0; transform: translateY(4px) } }
