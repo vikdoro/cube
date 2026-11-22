@@ -38,7 +38,6 @@ export interface Step {
   free?: { layer: Face; goal: (state: CubeState) => boolean }
 }
 
-// Words in brackets can be tapped for a line about them, see TERMS
 export const STEPS: Step[] = [
   {
     title: 'Find the edge',
