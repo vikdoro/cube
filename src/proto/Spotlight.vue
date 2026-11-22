@@ -1,9 +1,9 @@
 <script setup lang="ts">
-// PROTOTYPE: drawn over the board without touching the engine. Dims every sticker but the ones the step is about,
-// outlines where the piece is going, and can show the next turn as pulsing ghost arrows. It follows the stickers
+// PROTOTYPE: drawn over the board without touching the engine. Dims every sticker but the ones the step is about
+// (and the lid), outlines where the piece is going, and can show the next turn as pulsing ghost arrows. It follows the stickers
 // through turns, since it draws from the same shapes the board does.
 import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
-import { inLayer, SLOTS, type Move } from 'flatcube'
+import { boardMove, inLayer, SLOTS, type Move } from 'flatcube'
 import { arrowPaths, placements, pointsAttr, stickerShapes, VIEW_BOX } from 'flatcube/board'
 import type { Board } from 'flatcube/vue'
 
@@ -32,8 +32,10 @@ const shapes = computed(() => stickerShapes(b.state.value, b.view.value, b.turni
 const lit = computed(() => new Set(props.pieces))
 const still = computed(() => !b.busy.value)
 
+// the lid is left as it is: it's the finished white face, and dimming it only darkens the top of the board
+const lid = computed(() => boardMove(b.view.value, 'U', 1).layer)
 const dimmed = computed(() => props.dim && props.pieces.length
-  ? shapes.value.filter(s => !lit.value.has(b.state.value[s.slot])).map(s => pointsAttr(s.points)) : [])
+  ? shapes.value.filter(s => !lit.value.has(b.state.value[s.slot]) && SLOTS[s.slot].face !== lid.value).map(s => pointsAttr(s.points)) : [])
 const shown = computed(() => shapes.value.filter(s => lit.value.has(b.state.value[s.slot])).map(s => pointsAttr(s.points)))
 const homes = computed(() => still.value ? props.targets.map(slot => pointsAttr(placements(b.view.value)[slot].points)) : [])
 const ghost = computed(() => still.value && props.arrow ? arrowPaths(b.view.value, props.arrow) : [])

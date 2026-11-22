@@ -149,7 +149,7 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
       <button v-if="shown.end" class="btn primary" @click="restart">Again</button>
     </div>
     <div class="story" role="progressbar" :aria-valuemax="SLIDES.length - 1" :aria-valuenow="live">
-      <span v-for="(sl, i) in SLIDES.slice(0, -1)" :key="i" class="seg" :class="{ now: i === view, acts: acts(sl) }">
+      <span v-for="(_, i) in SLIDES.slice(0, -1)" :key="i" class="seg" :class="{ now: i === view }">
         <b :style="{ transform: `scaleX(${fill(i)})` }" :class="{ smooth: !timed || i !== view }" />
       </span>
     </div>
@@ -167,7 +167,6 @@ const arrow = computed(() => g.wrong.value.length || liveActs.value ? g.next.val
 .story { display: flex; gap: 3px; }
 .seg { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--fill); overflow: hidden; }
 .seg b { position: absolute; inset: 0; background: var(--muted); transform-origin: left; }
-.seg.acts b { background: var(--accent); }
 .seg b.smooth { transition: transform 0.34s ease-in-out; }
 .more { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 4; appearance: none; border: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--card); color: var(--muted); font: 700 18px var(--round); line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; }
 .scrim { position: fixed; inset: 0; z-index: 4; }
