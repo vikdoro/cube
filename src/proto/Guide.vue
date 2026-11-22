@@ -2,7 +2,8 @@
 // PROTOTYPE: each step's explanation floats over the board in a bubble, the pieces it talks about lit and the rest
 // dimmed. The player makes every turn; the next one is always drawn on the board as pulsing arrows, and the bar under
 // the board names it. The bubble goes once the player starts turning, and tapping the bar brings it back. The bar
-// turns green when the step is done and red after a wrong turn, whose undo the arrows then show.
+// turns green when the step is done and red after a wrong turn, whose undo the arrows then show. It also says which
+// step this is and can start again, so nothing sits over the top of the board but the bubble.
 import { computed, shallowRef, watch } from 'vue'
 import type { Board } from 'flatcube/vue'
 import Mini from './Mini.vue'
@@ -34,7 +35,6 @@ const colour = computed(() => arrow.value && !g.wrong.value.length ? LAYER_COLOU
     <template v-if="reading || !hasTurns" #bubble>
       <div class="head">
         <span class="title">{{ s.title }}</span>
-        <span class="muted">{{ g.step.value + 1 }} of {{ STEPS.length }}</span>
         <button v-if="hasTurns" class="link" @click="reading = false">Hide</button>
       </div>
       <p class="say" aria-live="polite">{{ s.say.join(' ') }}</p>
@@ -43,8 +43,11 @@ const colour = computed(() => arrow.value && !g.wrong.value.length ? LAYER_COLOU
 
   <Mini :turns="s.turns" :done="g.done.value" :expandable="hasTurns" :colour="colour"
     :tone="g.wrong.value.length ? 'bad' : g.stepDone.value && hasTurns ? 'ok' : ''" @expand="reading = !reading">
-    <span v-if="!hasTurns" class="muted">Step {{ g.step.value + 1 }} of {{ STEPS.length }}</span>
-    <template v-else>{{ caption }}</template>
+    <template #meta>
+      <span>Step {{ g.step.value + 1 }} of {{ STEPS.length }}</span>
+      <button class="restart" @click="g.goTo(0)">↺ Start again</button>
+    </template>
+    {{ hasTurns ? caption : s.title }}
     <template #actions>
       <button v-if="!hasTurns" class="btn primary" @click="g.advance()">Got it</button>
       <button v-else-if="g.finished.value" class="btn primary" @click="g.goTo(0)">Again</button>
@@ -54,7 +57,7 @@ const colour = computed(() => arrow.value && !g.wrong.value.length ? LAYER_COLOU
 </template>
 
 <style scoped>
-.muted { color: var(--muted); font-weight: 600; font-size: 14px; }
+.restart { appearance: none; border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; cursor: pointer; }
 .head { display: flex; align-items: center; gap: 10px; }
 .title { font: 700 15px var(--round); }
 .link { margin-left: auto; appearance: none; border: 0; background: none; color: var(--accent); font: 500 15px var(--sans); cursor: pointer; padding: 4px; }

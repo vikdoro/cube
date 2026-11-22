@@ -10,6 +10,7 @@ defineEmits<{ expand: [] }>()
 
 <template>
   <section class="mini" :class="tone">
+    <div v-if="$slots.meta" class="meta"><slot name="meta" /></div>
     <div class="line">
       <button class="label" :class="tone" :disabled="!expandable" :aria-label="expandable ? 'Show the instructions' : undefined" @click="$emit('expand')">
         <i v-if="colour" :style="{ background: colour }" />
@@ -23,7 +24,8 @@ defineEmits<{ expand: [] }>()
 </template>
 
 <style scoped>
-.mini { position: relative; z-index: 3; flex: none; height: 98px; box-sizing: border-box; display: grid; align-content: center; gap: 8px; padding: 10px 12px; border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); }
+.mini { position: relative; z-index: 3; flex: none; height: 98px; box-sizing: border-box; display: grid; align-content: center; gap: 6px; padding: 8px 12px 10px; border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06); }
+.meta { display: flex; align-items: center; justify-content: space-between; min-height: 20px; color: var(--muted); font: 600 13px var(--round); }
 .line { display: flex; align-items: center; gap: 6px; min-height: 40px; }
 .label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; appearance: none; border: 0; background: none; padding: 0; text-align: left; color: var(--fg); font: 700 18px var(--round); cursor: pointer; }
 .label:disabled { cursor: default; opacity: 1; }

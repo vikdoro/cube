@@ -40,7 +40,7 @@ const side = computed(() => {
 .boardbox { position: relative; display: flex; flex-direction: column; flex: none; }
 .boardbox > :deep(svg:first-child) { pointer-events: auto; }
 .bubble { position: absolute; left: 0; right: 0; z-index: 2; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.16); }
-.bubble.top { top: 0; right: 52px; }
+.bubble.top { top: 0; }
 .bubble.bottom { bottom: 0; }
 .bubble-enter-active, .bubble-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .bubble-enter-from, .bubble-leave-to { opacity: 0; transform: translateY(6px); }
