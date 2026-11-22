@@ -13,10 +13,10 @@ const DROP_IN = [t('U', 3), t('F', 3), t('U'), t('F')]
 
 /** The green and red edge, as its two sticker ids (also its home slots). */
 export const EDGE = SLOTS.filter(s => s.pos.join() === '1,0,1').map(s => s.index)
-/** The white corner under the edge's home, which the routine lifts out and puts back. */
+/** The green and red corner of the white face, under the edge's home, which the routine lifts out and puts back. */
 export const CORNER = SLOTS.filter(s => s.pos.join() === '1,-1,1').map(s => s.index)
 const GREEN = EDGE.find(id => SLOTS[id].face === 'F')!
-const GREEN_CENTRE = 22, RED_CENTRE = 13
+const GREEN_CENTRE = 22
 
 /** Two layers done but the green and red edge, which sits on the yellow face one turn away from lining up. */
 export const START: CubeState = applyMoves(SOLVED, [...LINE_UP, ...MAKE_ROOM, ...DROP_IN].reverse().map(inverse))
@@ -40,30 +40,24 @@ export interface Step {
 
 export const STEPS: Step[] = [
   {
-    title: 'Find the edge',
-    slides: [
-      { say: 'This edge has no yellow on it, so it belongs in the middle row.', turns: 0 },
-      { say: 'Its home is the gap between the green and red sides, outlined on the board.', turns: 0 },
-    ],
-    turns: [], pieces: EDGE, targets: EDGE,
-  },
-  {
     title: 'Line it up',
-    slides: [{ say: 'Turn the yellow face until the edge’s green sticker sits on the green side.', turns: 1 }],
-    turns: LINE_UP, pieces: [...EDGE, GREEN_CENTRE], targets: [],
+    slides: [
+      { say: 'This edge’s home is between the green and red sides, outlined on the board.', turns: 0 },
+      { say: 'Turn the yellow face until the edge’s green sticker sits on the green side.', turns: 1 },
+    ],
+    turns: LINE_UP, pieces: [...EDGE, GREEN_CENTRE], targets: EDGE,
     free: { layer: 'U', goal: s => SLOTS[s.indexOf(GREEN)].face === 'F' },
   },
   {
     title: 'Make room',
     slides: [
-      { say: 'Its other sticker is red, so the edge goes towards the red side.', turns: 0 },
-      { say: 'First the white corner under the gap comes up next to the edge, so the two can go down together.', turns: 0 },
+      { say: 'The green and red corner under the gap has to come up next to the edge first, so the two can go down together.', turns: 0 },
       { say: 'Turn the yellow face to move the edge out of the way.', turns: 1 },
-      { say: 'Turn the red side to lift the white corner up.', turns: 1 },
+      { say: 'Turn the red side to lift the corner up.', turns: 1 },
       { say: 'Turn the yellow face back, and the edge comes back too.', turns: 1 },
       { say: 'Turn the red side back down. The corner stays up, right next to the edge.', turns: 1 },
     ],
-    turns: MAKE_ROOM, pieces: [...EDGE, ...CORNER, RED_CENTRE], targets: EDGE,
+    turns: MAKE_ROOM, pieces: [...EDGE, ...CORNER], targets: EDGE,
   },
   {
     title: 'Drop it in',

@@ -8,15 +8,15 @@ describe('prototype script', () => {
     expect(isTwoLayers(START)).toBe(false)
   })
   it('lines the edge up after the free step', () => {
-    expect(STEPS[1].free!.goal(STEP_STARTS[1])).toBe(false)
-    expect(STEPS[1].free!.goal(STEP_STARTS[2])).toBe(true)
+    expect(STEPS[0].free!.goal(STEP_STARTS[0])).toBe(false)
+    expect(STEPS[0].free!.goal(STEP_STARTS[1])).toBe(true)
   })
   it('splits every step’s turns across its slides', () => {
     for (const step of STEPS) expect(step.slides.reduce((n, sl) => n + sl.turns, 0)).toBe(step.turns.length)
   })
-  it('lifts the white corner next to the edge after making room', () => {
+  it('lifts the corner next to the edge after making room', () => {
     // the slides say so: the corner up in the yellow layer, beside the edge in front
-    const s = STEP_STARTS[3], slot = (id: number) => SLOTS[s.indexOf(id)].pos
+    const s = STEP_STARTS[2], slot = (id: number) => SLOTS[s.indexOf(id)].pos
     expect(CORNER.every(id => slot(id)[1] === 1)).toBe(true)
     expect(EDGE.every(id => slot(id).join() === '0,1,1')).toBe(true)
     expect(CORNER.every(id => slot(id).join() === '1,1,1')).toBe(true)
