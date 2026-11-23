@@ -3,21 +3,13 @@
 import { computed } from 'vue'
 import { usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
-import { doneTitle, plural } from '../text'
+import { doneSummary, doneTitle } from '../text'
 import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
 const { drill, nextPuzzle } = usePractice()
 
-const summary = computed(() => {
-  const d = drill.value
-  if (!d) return ''
-  const par = d.kind !== 'lily'
-    ? (d.moves <= d.par ? 'No wasted turns. ' : `The routine takes ${d.par}. `)
-    : (d.moves <= d.par ? 'That is the shortest way. ' : `It can be done in ${d.par}. `)
-  return par + (d.hints ? `You used ${plural(d.hints, 'hint')}.` : 'No hints.')
-})
-
+const summary = computed(() => drill.value ? doneSummary(drill.value) : '')
 </script>
 
 <template>

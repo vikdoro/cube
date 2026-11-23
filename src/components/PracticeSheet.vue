@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue'
-import type { DrillKind } from '../cube/drills'
-import { GUIDES } from '../composables/useGuide'
+import { DRILLS, type DrillKind } from '../drills'
 import { usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
 import { loadPractice, savePractice } from '../storage'
@@ -9,16 +8,6 @@ import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
 const { drill, start, resetToSolved } = usePractice()
-
-// the steps of the method in order, each drill starting where the one before leaves the cube
-const PICKS: { kind: DrillKind, title: string, about: string }[] = [
-  { kind: 'lily', title: 'Make the white lily', about: 'The first step of solving, from a full scramble: the four white edges around the yellow centre.' },
-  { kind: 'cross', title: 'Make the white cross', about: 'From the lily, the petals drop onto the lid, each on the side of its own colour.' },
-  { kind: 'corners', title: 'Put in the white corners', about: 'From the cross, with white in the middle, the corners go in between the cross\'s edges, which finishes the white face.' },
-  { kind: 'middle', title: 'Fill the middle layer', about: 'From the white face, the four edges with no yellow go into the middle row, each between the sides of its colours.' },
-  { kind: 'yellow', title: 'Make the yellow cross', about: 'From the first two layers, the yellow edges turn so their yellow is on the yellow face. Six turns, done once, twice or three times.' },
-  { kind: 'edges', title: 'Put the yellow edges in place', about: 'From the yellow cross, the yellow edges swap round until each one\'s other colour matches its side. Nine turns, done once or twice.' },
-]
 
 // guided play, chosen per drill and remembered; it takes effect from the next puzzle started
 const guided = shallowRef(loadPractice().guided ?? {})
@@ -31,16 +20,16 @@ function setGuided(kind: DrillKind, on: boolean) {
 <template>
   <BottomSheet :open="sheets.current.value === 'practice'" title="Practice" @close="sheets.close">
     <p>Short puzzles, one for each step of solving. Each starts where the step before leaves the cube.</p>
-    <div v-for="pick in PICKS" :key="pick.kind" class="pick">
-      <b>{{ pick.title }}</b>
-      <p>{{ pick.about }}</p>
+    <div v-for="def in DRILLS" :key="def.kind" class="pick">
+      <b>{{ def.pick }}</b>
+      <p>{{ def.about }}</p>
       <div class="chips">
-        <button class="btn level" :aria-pressed="drill?.kind === pick.kind" @click="start(pick.kind)">
-          {{ drill?.kind === pick.kind ? 'New puzzle' : 'Start' }}
+        <button class="btn level" :aria-pressed="drill?.kind === def.kind" @click="start(def.kind)">
+          {{ drill?.kind === def.kind ? 'New puzzle' : 'Start' }}
         </button>
       </div>
-      <label v-if="GUIDES[pick.kind]" class="guided">
-        <input type="checkbox" role="switch" :checked="!!guided[pick.kind]" @change="setGuided(pick.kind, ($event.target as HTMLInputElement).checked)">
+      <label v-if="def.guided" class="guided">
+        <input type="checkbox" role="switch" :checked="!!guided[def.kind]" @change="setGuided(def.kind, ($event.target as HTMLInputElement).checked)">
         <span>Guided, step by step<small>Every turn shown and explained.</small></span>
       </label>
     </div>

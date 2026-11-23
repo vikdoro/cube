@@ -1,13 +1,8 @@
 import { shallowRef } from 'vue'
 import { IDENTITY, rollTowards, SOLVED, type CubeState, type Move } from 'flatcube'
 import { TURN_MS } from 'flatcube/board'
-import { scramble, type DrillKind } from '../cube/drills'
-import { cornersHint, cornersPuzzle, cornersTurns, isFirstLayer } from '../cube/corners'
-import { crossHint, crossPuzzle, isCross, routineTurns } from '../cube/cross'
-import { isLily, lilyDistance, lilyHint, lilyPuzzle } from '../cube/lily'
-import { isTwoLayers, middleHint, middlePuzzle, middleTurns } from '../cube/middle'
-import { isYellowCross, yellowHint, yellowPuzzle, yellowTurns } from '../cube/yellow'
-import { edgesHint, edgesPuzzle, edgesTurns, isYellowEdges } from '../cube/edges'
+import { ROUTINES } from '../cube/drills'
+import { drillDef, type DrillKind } from '../drills'
 import { loadPractice, savePractice } from '../storage'
 import { board as cube } from '../board'
 import { useSheets } from './useSheets'
@@ -29,42 +24,25 @@ export interface Drill {
   recent: readonly Move[]
 }
 
-/** Whether the drill's goal is reached. */
-const GOAL: Record<DrillKind, (state: CubeState) => boolean> = {
-  lily: isLily, cross: isCross, corners: isFirstLayer, middle: isTwoLayers, yellow: isYellowCross, edges: isYellowEdges,
-}
-
 const sheets = useSheets()
 const drill = shallowRef<Drill | null>(null)
 
 const fresh = { moves: 0, hints: 0, hintShown: false, done: false, recent: [] } as const
 
-const scrambled = () => scramble(SOLVED)
 // white in the middle for the corners, where the slots being filled are easiest to see, and yellow on the lid;
 // yellow in the middle for the rest
-const WHITE_UP = rollTowards(IDENTITY, [0, -1, 0])
+const VIEWS = { 'white-middle': rollTowards(IDENTITY, [0, -1, 0]), 'yellow-middle': IDENTITY }
 
-/**
- * Each drill's puzzle, from where the step before leaves the cube: the lily from a full scramble, the cross from the
- * lily, the corners from the cross, the middle layer from the white face, the yellow cross from the first two layers
- * (any shape on top) and the yellow edges from the yellow cross (in any order). The puzzle makers can stop partway
- * through a step too; the tests use that.
- */
-const PUZZLE: Record<DrillKind, () => { start: CubeState, par: (start: CubeState) => number }> = {
-  lily: () => ({ start: lilyPuzzle(scrambled, 4), par: lilyDistance }),
-  cross: () => ({ start: crossPuzzle(scrambled, 4), par: routineTurns }),
-  corners: () => ({ start: cornersPuzzle(scrambled, 4), par: cornersTurns }),
-  middle: () => ({ start: middlePuzzle(scrambled, 4), par: middleTurns }),
-  yellow: () => ({ start: yellowPuzzle(scrambled, 4), par: yellowTurns }),
-  edges: () => ({ start: edgesPuzzle(scrambled, 3), par: edgesTurns }),
-}
+const routineOf = (kind: DrillKind) => ROUTINES[drillDef(kind).routine]
 
 /** Start a drill with a new puzzle. */
 function start(kind: DrillKind) {
-  const { start, par } = PUZZLE[kind]()
-  const guided = !!loadPractice().guided?.[kind] // only drills with a guide play it (see useGuide)
-  begin({ kind, start, par: par(start), ...fresh, guided })
-  cube.setView(kind === 'corners' ? WHITE_UP : IDENTITY)
+  const def = drillDef(kind)
+  const routine = ROUTINES[def.routine]
+  const start = routine.puzzle()
+  const guided = def.guided && !!loadPractice().guided?.[kind] // only drills with a guide play it (see useGuide)
+  begin({ kind, start, par: routine.par(start), ...fresh, guided })
+  cube.setView(VIEWS[def.view])
 }
 
 function begin(next: Drill) {
@@ -118,20 +96,10 @@ function recordTurn(move: Move) {
   }
 }
 
-/** The next turn to suggest for a drill, if any. */
-const HINT: Record<DrillKind, (d: Drill) => Move | null> = {
-  lily: () => lilyHint(cube.state.value),
-  cross: () => crossHint(cube.state.value),
-  corners: d => cornersHint(cube.state.value, d.recent),
-  middle: d => middleHint(cube.state.value, d.recent),
-  yellow: d => yellowHint(cube.state.value, d.recent),
-  edges: d => edgesHint(cube.state.value, d.recent),
-}
-
 function hint() {
   const d = drill.value
   if (!d || d.done || cube.busy.value) return
-  const move = HINT[d.kind](d)
+  const move = routineOf(d.kind).hint(cube.state.value, d.recent)
   if (!move) return
   drill.value = { ...d, hints: d.hints + 1, hintShown: true }
   cube.showArrows(move, 900) // hold the arrows a little longer than after a turn
@@ -139,7 +107,7 @@ function hint() {
 
 cube.onTurnApplied(() => {
   const d = drill.value
-  if (!d || d.done || !GOAL[d.kind](cube.state.value)) return
+  if (!d || d.done || !routineOf(d.kind).goal(cube.state.value)) return
   drill.value = { ...d, done: true }
   setTimeout(() => { if (drill.value?.done) sheets.open('done') }, TURN_MS + 300) // let the last turn land first
 })

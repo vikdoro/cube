@@ -2,6 +2,7 @@
 
 Newest first: date, what changed, link.
 
+- 2026-11-23: Moved every drill's setup into one hand-editable file, `src/drills.ts`, with the cube logic in a routine registry ([PR #8](https://github.com/vikdoro/cube/pull/8))
 - 2026-11-23: Added guided play for the white lily drill: one petal per segment, never losing a petal made ([PR #7](https://github.com/vikdoro/cube/pull/7))
 - 2026-11-23: Dropped the undo drill and the drill levels: each drill starts where the step before leaves the cube ([PR #6](https://github.com/vikdoro/cube/pull/6))
 - 2026-11-22: Added guided play for the middle layer drill: story slides under the board, every turn shown as arrows, off-plan turns re-planned or shown the way back ([PR #5](https://github.com/vikdoro/cube/pull/5))

@@ -1,9 +1,8 @@
 import { computed, shallowRef } from 'vue'
 import { applyMove, inverse, sameMove, type Move } from 'flatcube'
-import type { DrillKind } from '../cube/drills'
-import type { Guide, GuideSegment } from '../cube/guide'
-import { lilyGuide } from '../cube/lilyGuide'
-import { middleGuide } from '../cube/middleGuide'
+import { ROUTINES } from '../cube/drills'
+import type { GuideSegment } from '../cube/guide'
+import { drillDef } from '../drills'
 import { board as cube } from '../board'
 import { usePlayer } from './usePlayer'
 import { usePractice } from './usePractice'
@@ -14,9 +13,6 @@ import { usePractice } from './usePractice'
  * carry on from where the cube is, the story is written again from there; if not, the turns are counted as wrong and
  * the arrows show the way back, until they're turned back (or the cube is back where the routine can carry on).
  */
-
-/** The drills that can be played guided. */
-export const GUIDES: Partial<Record<DrillKind, Guide>> = { lily: lilyGuide, middle: middleGuide }
 
 const practice = usePractice()
 const player = usePlayer()
@@ -39,7 +35,7 @@ let moving: ReturnType<typeof setTimeout> | undefined
 
 const guide = computed(() => {
   const d = practice.drill.value
-  return d?.guided ? GUIDES[d.kind] ?? null : null
+  return d?.guided ? ROUTINES[drillDef(d.kind).routine].guide ?? null : null
 })
 const slides = computed(() => segment.value?.slides ?? [])
 const current = computed(() => slides.value[slide.value] ?? null)

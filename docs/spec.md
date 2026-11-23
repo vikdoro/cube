@@ -17,9 +17,10 @@ Tadacube is an interactive 3×3 cube on a flat board (one face in the middle, th
   - Make the yellow cross (from the first two layers, any shape on top)
   - Put the yellow edges in place (from the yellow cross, in any order)
 - The lily and middle layer drills can be played guided, switched on in the Practice sheet: see "Guided steps" below.
+- Every drill's setup (order, names, copy, view, guided switch) is one hand-editable file, `src/drills.ts`; the cube logic it names lives in `src/cube/drills.ts`.
 - "Intro seen" flags and the guided switches are remembered in `localStorage`.
 - `?debug` labels every sticker with the place it starts on.
-- Unit tests for the drills, the guided lily and middle layer, text and the engine boundary (10 files, 67 tests, all pass).
+- Unit tests for the drills, the guided lily and middle layer, text and the engine boundary (11 files, 82 tests, all pass).
 
 ## Next up
 
@@ -37,7 +38,7 @@ A drill can be played guided: the app walks the player through each step, turn b
 
 ### Choosing it
 
-- A drill with a guide gets a "Guided" switch in the Practice sheet, off by default and remembered in `localStorage`. The switch shows for every drill listed in `GUIDES`.
+- A drill with a guide gets a "Guided" switch in the Practice sheet, off by default and remembered in `localStorage`. The switch shows for every drill marked `guided` in `src/drills.ts`.
 - Every puzzle starts where the step before leaves the cube, so guided play covers every puzzle.
 - Guided play doesn't open the intro sheet: the slides explain as they go.
 
@@ -79,7 +80,7 @@ The player is never forced to undo.
 
 - The story planner is pure and lives next to the drill (`src/cube/middleGuide.ts`): given a cube (and the last turns made), it returns the steps, their slides, the turns each slide waits for, and the pieces to outline.
 - Tests follow the plan from random puzzles (the white face done, and partway through the step) to two layers done. They check that each slide's turns add up to its step's, that the plan recovers after a random off-plan turn that keeps the white face, and that no slide text has move letters.
-- The board overlay (`BoardSpotlight.vue`), the story panel (`GuidePanel.vue`) and the turn following (`useGuide.ts`) are shared: another drill gets guided by giving a planner (`src/cube/guide.ts` has the shape) and adding it to `GUIDES`.
+- The board overlay (`BoardSpotlight.vue`), the story panel (`GuidePanel.vue`) and the turn following (`useGuide.ts`) are shared: another drill gets guided by giving its routine a `guide` planner (`src/cube/guide.ts` has the shape) and setting `guided: true` in `src/drills.ts`.
 - Stepping back goes back within the current edge's slides; a step back from an edge's first slide does nothing.
 
 ## Known bugs and limits

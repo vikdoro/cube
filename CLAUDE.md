@@ -6,7 +6,8 @@ Tadacube is a mobile-first web game that teaches the beginner method for the 3×
 
 Vue 3 (Composition API) + TypeScript + Vite + Vitest, deployed as static assets on Cloudflare Workers. No router, no backend; progress lives in `localStorage`.
 
-- `src/cube/`: the drills (`drills.ts` the drill kinds and scramble, `lily.ts`, `cross.ts`, `corners.ts`, `middle.ts`, `yellow.ts`, `edges.ts`), pure and stateless, each with a `.test.ts`.
+- `src/drills.ts`: every drill's setup (order, names, copy, view, guided switch), for editing by hand; `checkDrills` validates it in `npm test`.
+- `src/cube/`: the drills' cube logic (`drills.ts` the routine registry and scramble, `lily.ts`, `cross.ts`, `corners.ts`, `middle.ts`, `yellow.ts`, `edges.ts`), pure and stateless, each with a `.test.ts`.
 - `src/composables/`: shared app state (`usePlayer`, `usePractice`, `useSheets`).
 - `src/components/`: UI; sheets are built on `BottomSheet.vue`.
 - `src/board.ts`, `src/storage.ts`, `src/text.ts`: the one board, saved progress, player-facing wording.

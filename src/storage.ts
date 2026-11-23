@@ -1,11 +1,9 @@
-import type { DrillKind } from './cube/drills'
-
 /** What the practice drills remember between visits, in this browser only. */
 export interface PracticeMemory {
   /** Drills to play guided, as chosen in the Practice sheet. */
-  guided?: Partial<Record<DrillKind, boolean>>
+  guided?: Record<string, boolean>
   /** Drills whose steps have been explained once already. */
-  seen?: Partial<Record<DrillKind, boolean>>
+  seen?: Record<string, boolean>
 }
 
 const PRACTICE = 'practice'
