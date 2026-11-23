@@ -29,6 +29,8 @@ export interface Drill {
   par: number | null
   moves: number
   hints: number
+  /** Played guided: the steps told as story slides, every turn shown on the board (see useGuide). */
+  guided: boolean
   /** A hint was shown since the last turn. */
   hintShown: boolean
   done: boolean
@@ -48,7 +50,7 @@ const GOAL: Record<DrillKind, (state: CubeState) => boolean> = {
 const sheets = useSheets()
 const drill = shallowRef<Drill | null>(null)
 
-const fresh = { moves: 0, hints: 0, hintShown: false, done: false, recent: [] } as const
+const fresh = { moves: 0, hints: 0, hintShown: false, done: false, recent: [], guided: false } as const
 
 /** Undo a few random turns. */
 function startUndo(level = 1) {
@@ -90,7 +92,9 @@ function startCorners(level = 1) {
 function startMiddle(level = 1) {
   const start = middlePuzzle(() => scramble(SOLVED), level)
   savePractice({ middleLevel: level })
-  begin({ kind: 'middle', level, start, startPath: [], par: level < MAX_LEVEL.middle ? middleTurns(start) : null, path: [], ...fresh })
+  // guided play needs the white face done, which a full scramble doesn't have
+  const guided = !!loadPractice().guided?.middle && level < MAX_LEVEL.middle
+  begin({ kind: 'middle', level, start, startPath: [], par: level < MAX_LEVEL.middle ? middleTurns(start) : null, path: [], ...fresh, guided })
   cube.setView(IDENTITY)
 }
 
@@ -114,9 +118,10 @@ function begin(next: Drill) {
   drill.value = next
   cube.reset(next.start)
   sheets.close()
-  // the steps are explained once, before the first puzzle; after that they are behind "Steps"
+  // the steps are explained once, before the first puzzle; after that they are behind "Steps". Guided play explains
+  // as it goes instead.
   const seen = loadPractice().seen ?? {}
-  if (!seen[next.kind]) {
+  if (!seen[next.kind] && !next.guided) {
     savePractice({ seen: { ...seen, [next.kind]: true } })
     sheets.openIntro(false)
   }
@@ -138,7 +143,7 @@ function retry() {
   const d = drill.value
   if (!d) return
   cube.reset(d.start)
-  drill.value = { ...d, path: d.startPath, ...fresh }
+  drill.value = { ...d, path: d.startPath, ...fresh, guided: d.guided }
 }
 
 function stop() {

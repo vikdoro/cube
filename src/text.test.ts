@@ -5,7 +5,7 @@ import { SOLVED } from 'flatcube'
 import { doneTitle, drillTitle, levelName } from './text'
 
 const drill = (kind: DrillKind, level: number, moves = 0): Drill =>
-  ({ kind, level, start: SOLVED, startPath: [], par: null, moves, hints: 0, hintShown: false, done: false, path: [], recent: [] })
+  ({ kind, level, start: SOLVED, startPath: [], par: null, moves, hints: 0, hintShown: false, done: false, path: [], recent: [], guided: false })
 
 describe('drill names', () => {
   it('names a level in a few words', () => {

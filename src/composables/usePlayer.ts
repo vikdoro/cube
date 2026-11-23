@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue'
-import { inverse, type Move } from 'flatcube'
+import { inverse, sameMove, type Move } from 'flatcube'
 import { UNDO_MS } from 'flatcube/board'
 import { board as cube } from '../board'
 import { usePractice } from './usePractice'
@@ -44,8 +44,15 @@ function undo() {
   playerTurn(inverse(undoable.pop()!), true)
 }
 
+/** Turn a turn back for the guided story: as Undo does when it's the last turn made, else as a turn of its own. */
+function turnBack(move: Move) {
+  const last = undoable[undoable.length - 1]
+  if (last && sameMove(last, move)) undoable.pop()
+  playerTurn(inverse(move), true)
+}
+
 cube.onReset(() => { undoable.length = 0; turnsMade.value = 0; hideUndo() })
 
 export function usePlayer() {
-  return { undoOffered, turnsMade, playerTurn, undo, hideUndo }
+  return { undoOffered, turnsMade, playerTurn, undo, hideUndo, turnBack }
 }
