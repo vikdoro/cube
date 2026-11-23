@@ -1,111 +1,48 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue'
-import { MAX_LEVEL, usePractice } from '../composables/usePractice'
+import type { DrillKind } from '../cube/drills'
+import { GUIDES } from '../composables/useGuide'
+import { usePractice } from '../composables/usePractice'
 import { useSheets } from '../composables/useSheets'
 import { loadPractice, savePractice } from '../storage'
-import { levelName } from '../text'
 import BottomSheet from './BottomSheet.vue'
 
 const sheets = useSheets()
-const { drill, start, resetToSolved, currentLevel } = usePractice()
+const { drill, start, resetToSolved } = usePractice()
 
-// guided play, chosen per drill and remembered; it takes effect from the next puzzle picked
-const guidedMiddle = shallowRef(!!loadPractice().guided?.middle)
-function setGuidedMiddle(on: boolean) {
-  guidedMiddle.value = on
-  savePractice({ guided: { ...loadPractice().guided, middle: on } })
+// the steps of the method in order, each drill starting where the one before leaves the cube
+const PICKS: { kind: DrillKind, title: string, about: string }[] = [
+  { kind: 'lily', title: 'Make the white lily', about: 'The first step of solving, from a full scramble: the four white edges around the yellow centre.' },
+  { kind: 'cross', title: 'Make the white cross', about: 'From the lily, the petals drop onto the lid, each on the side of its own colour.' },
+  { kind: 'corners', title: 'Put in the white corners', about: 'From the cross, with white in the middle, the corners go in between the cross\'s edges, which finishes the white face.' },
+  { kind: 'middle', title: 'Fill the middle layer', about: 'From the white face, the four edges with no yellow go into the middle row, each between the sides of its colours.' },
+  { kind: 'yellow', title: 'Make the yellow cross', about: 'From the first two layers, the yellow edges turn so their yellow is on the yellow face. Six turns, done once, twice or three times.' },
+  { kind: 'edges', title: 'Put the yellow edges in place', about: 'From the yellow cross, the yellow edges swap round until each one\'s other colour matches its side. Nine turns, done once or twice.' },
+]
+
+// guided play, chosen per drill and remembered; it takes effect from the next puzzle started
+const guided = shallowRef(loadPractice().guided ?? {})
+function setGuided(kind: DrillKind, on: boolean) {
+  guided.value = { ...guided.value, [kind]: on }
+  savePractice({ guided: guided.value })
 }
 </script>
 
 <template>
   <BottomSheet :open="sheets.current.value === 'practice'" title="Practice" @close="sheets.close">
-    <p>Short puzzles, each with one goal. Start at 1 and add one when it feels easy.</p>
-    <div class="pick">
-      <b>Undo the scramble</b>
-      <p>The cube was turned a few times from solved. Turn it back.</p>
+    <p>Short puzzles, one for each step of solving. Each starts where the step before leaves the cube.</p>
+    <div v-for="pick in PICKS" :key="pick.kind" class="pick">
+      <b>{{ pick.title }}</b>
+      <p>{{ pick.about }}</p>
       <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.undo" :key="n" class="btn level"
-          :aria-pressed="n === currentLevel('undo')" :aria-label="`Undo ${levelName('undo', n)}`"
-          @click="start('undo', n)"
-        >{{ n }}</button>
+        <button class="btn level" :aria-pressed="drill?.kind === pick.kind" @click="start(pick.kind)">
+          {{ drill?.kind === pick.kind ? 'New puzzle' : 'Start' }}
+        </button>
       </div>
-    </div>
-    <div class="pick">
-      <b>Make the white lily</b>
-      <p>The first step of solving: the four white edges around the yellow centre. Pick how many petals are missing, or start from a full scramble.</p>
-      <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.lily" :key="n" class="btn level"
-          :class="{ wide: n === MAX_LEVEL.lily }"
-          :aria-pressed="n === currentLevel('lily')" :aria-label="`White lily, ${levelName('lily', n)}`"
-          @click="start('lily', n)"
-        >{{ n === MAX_LEVEL.lily ? 'Full scramble' : n }}</button>
-      </div>
-    </div>
-    <div class="pick">
-      <b>Make the white cross</b>
-      <p>The petals drop onto the lid, each on the side of its own colour. Pick how many petals are still to drop, or start from a full scramble.</p>
-      <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.cross" :key="n" class="btn level"
-          :class="{ wide: n === MAX_LEVEL.cross }"
-          :aria-pressed="n === currentLevel('cross')" :aria-label="`White cross, ${levelName('cross', n)}`"
-          @click="start('cross', n)"
-        >{{ n === MAX_LEVEL.cross ? 'Full scramble' : n }}</button>
-      </div>
-    </div>
-    <div class="pick">
-      <b>Put in the white corners</b>
-      <p>With white in the middle, the corners go in between the cross's edges, which finishes the white face. Pick how many corners are still to place, or start from a full scramble.</p>
-      <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.corners" :key="n" class="btn level"
-          :class="{ wide: n === MAX_LEVEL.corners }"
-          :aria-pressed="n === currentLevel('corners')" :aria-label="`White corners, ${levelName('corners', n)}`"
-          @click="start('corners', n)"
-        >{{ n === MAX_LEVEL.corners ? 'Full scramble' : n }}</button>
-      </div>
-    </div>
-    <div class="pick">
-      <b>Fill the middle layer</b>
-      <p>With the white face done, the four edges with no yellow go into the middle row, each between the sides of its colours. Pick how many are still to place, or start from a full scramble.</p>
-      <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.middle" :key="n" class="btn level"
-          :class="{ wide: n === MAX_LEVEL.middle }"
-          :aria-pressed="n === currentLevel('middle')" :aria-label="`Middle layer, ${levelName('middle', n)}`"
-          @click="start('middle', n)"
-        >{{ n === MAX_LEVEL.middle ? 'Full scramble' : n }}</button>
-      </div>
-      <label class="guided">
-        <input type="checkbox" role="switch" :checked="guidedMiddle" @change="setGuidedMiddle(($event.target as HTMLInputElement).checked)">
-        <span>Guided, step by step<small>Every turn shown and explained. Not with a full scramble.</small></span>
+      <label v-if="GUIDES[pick.kind]" class="guided">
+        <input type="checkbox" role="switch" :checked="!!guided[pick.kind]" @change="setGuided(pick.kind, ($event.target as HTMLInputElement).checked)">
+        <span>Guided, step by step<small>Every turn shown and explained.</small></span>
       </label>
-    </div>
-    <div class="pick">
-      <b>Make the yellow cross</b>
-      <p>With the first two layers done, the yellow edges turn so their yellow is on the yellow face. Six turns, done once, twice or three times. Pick the shape the yellow edges start in.</p>
-      <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.yellow" :key="n" class="btn level"
-          :class="{ wide: n === MAX_LEVEL.yellow }"
-          :aria-pressed="n === currentLevel('yellow')" :aria-label="`Yellow cross, ${levelName('yellow', n)}`"
-          @click="start('yellow', n)"
-        >{{ n === MAX_LEVEL.yellow ? 'Any shape' : n }}</button>
-      </div>
-    </div>
-    <div class="pick">
-      <b>Put the yellow edges in place</b>
-      <p>With the yellow cross made, the yellow edges swap round until each one's other colour matches its side. Nine turns, done once or twice. Pick the pair that can match at the start.</p>
-      <div class="chips">
-        <button
-          v-for="n in MAX_LEVEL.edges" :key="n" class="btn level"
-          :class="{ wide: n === MAX_LEVEL.edges }"
-          :aria-pressed="n === currentLevel('edges')" :aria-label="`Yellow edges, ${levelName('edges', n)}`"
-          @click="start('edges', n)"
-        >{{ n === MAX_LEVEL.edges ? 'Any order' : n }}</button>
-      </div>
     </div>
     <button v-if="drill" class="btn plain" @click="resetToSolved">Stop practising</button>
   </BottomSheet>
@@ -113,8 +50,7 @@ function setGuidedMiddle(on: boolean) {
 
 <style scoped>
 .pick { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--bg); }
-.level { min-width: 44px; padding: 0; }
-.level.wide { padding: 0 14px; }
+.level { padding: 0 14px; }
 .level[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .guided { display: flex; align-items: center; gap: 12px; cursor: pointer; }
 .guided span { display: grid; font-weight: 500; }

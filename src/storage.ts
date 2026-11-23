@@ -2,20 +2,6 @@ import type { DrillKind } from './cube/drills'
 
 /** What the practice drills remember between visits, in this browser only. */
 export interface PracticeMemory {
-  /** The last "undo" level played. */
-  level?: number
-  /** The last "lily" level played. */
-  lilyLevel?: number
-  /** The last "cross" level played. */
-  crossLevel?: number
-  /** The last "corners" level played. */
-  cornersLevel?: number
-  /** The last "middle" level played. */
-  middleLevel?: number
-  /** The last "yellow" level played. */
-  yellowLevel?: number
-  /** The last "edges" level played. */
-  edgesLevel?: number
   /** Drills to play guided, as chosen in the Practice sheet. */
   guided?: Partial<Record<DrillKind, boolean>>
   /** Drills whose steps have been explained once already. */

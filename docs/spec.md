@@ -9,27 +9,26 @@ Tadacube is an interactive 3×3 cube on a flat board (one face in the middle, th
 - Drag a sticker to turn its row or ring; tap a side to roll the cube so that side is in the middle.
 - Keyboard controls by board position (S middle, W far side, X near side, A/D sides; arrows roll; Cmd/Ctrl+Z undoes).
 - Undo button after each move, hint button during a drill, move name shown above the board, start-over confirm on the logo.
-- Seven drills in the Practice sheet, each with levels, an intro sheet shown once, and a done sheet:
-  - Undo the scramble (1–5 turns)
-  - Make the white lily (1–4 petals missing, or full scramble)
-  - Make the white cross (1–5 petals, or full scramble)
-  - Put in the white corners (1–5, or full scramble)
-  - Put in the middle layer (1–5, or full scramble)
-  - Make the yellow cross (from a line, an L, a dot, or any shape)
-  - Put the yellow edges in place (from a pair side by side, a pair across, or any order)
-- The middle layer drill can be played guided (levels 1–4), switched on in the Practice sheet: see "Guided steps" below.
-- Last level per drill, "intro seen" flags and the guided switch are remembered in `localStorage`.
+- Six drills in the Practice sheet, one per step of the method, each with an intro sheet shown once and a done sheet. There are no levels: each drill starts where the step before leaves the cube.
+  - Make the white lily (from a full scramble)
+  - Make the white cross (from the lily)
+  - Put in the white corners (from the cross)
+  - Put in the middle layer (from the white face)
+  - Make the yellow cross (from the first two layers, any shape on top)
+  - Put the yellow edges in place (from the yellow cross, in any order)
+- The middle layer drill can be played guided, switched on in the Practice sheet: see "Guided steps" below.
+- "Intro seen" flags and the guided switches are remembered in `localStorage`.
 - `?debug` labels every sticker with the place it starts on.
-- Unit tests for the drills, the guided middle layer, text and the engine boundary (10 files, 66 tests, all pass).
+- Unit tests for the drills, the guided middle layer, text and the engine boundary (9 files, 62 tests, all pass).
 
 ## Next up
 
 Confirmed by Viktor 2026-11-21 (the repo has no TODO comments or issues; these came from the method and the README).
 
-0. Guided steps for the other drills, one pull request each, following the middle layer (below; approved by Viktor 2026-11-22)
+0. Guided steps for the other drills, one pull request each, following the middle layer (below; approved by Viktor 2026-11-22, and on 2026-11-23 for every drill)
 1. Drills for the last corners (put them in place, then twist them), finishing the method
 2. Chain the drills into one guided course, as parked on the `learning-full` branch
-3. Show progress across drills, e.g. which levels were completed
+3. Show progress across drills, e.g. which steps were completed
 4. Add a lint step
 
 ## Guided steps (middle layer done)
@@ -38,8 +37,8 @@ A drill can be played guided: the app walks the player through each step, turn b
 
 ### Choosing it
 
-- The middle layer pick in the Practice sheet gets a "Guided" switch, off by default and remembered in `localStorage`.
-- Guided play covers levels 1–4, which start with the white face done. Full scramble always plays unguided, since it needs the earlier steps first.
+- A drill with a guide gets a "Guided" switch in the Practice sheet, off by default and remembered in `localStorage`. The switch shows for every drill listed in `GUIDES`.
+- Every puzzle starts where the step before leaves the cube, so guided play covers every puzzle.
 - Guided play doesn't open the intro sheet: the slides explain as they go.
 
 ### The screen
@@ -75,7 +74,7 @@ The player is never forced to undo.
 ### Code and tests
 
 - The story planner is pure and lives next to the drill (`src/cube/middleGuide.ts`): given a cube (and the last turns made), it returns the steps, their slides, the turns each slide waits for, and the pieces to outline.
-- Tests follow the plan from random level 1–4 puzzles to two layers done. They check that each slide's turns add up to its step's, that the plan recovers after a random off-plan turn that keeps the white face, and that no slide text has move letters.
+- Tests follow the plan from random puzzles (the white face done, and partway through the step) to two layers done. They check that each slide's turns add up to its step's, that the plan recovers after a random off-plan turn that keeps the white face, and that no slide text has move letters.
 - The board overlay (`BoardSpotlight.vue`), the story panel (`GuidePanel.vue`) and the turn following (`useGuide.ts`) are shared: another drill gets guided by giving a planner (`src/cube/guide.ts` has the shape) and adding it to `GUIDES`.
 - Stepping back goes back within the current edge's slides; a step back from an edge's first slide does nothing.
 

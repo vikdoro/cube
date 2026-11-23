@@ -5,13 +5,14 @@ middle with all four sides fanned around it, three rows deep, and the far face
 hanging open above like a lid. Drag a sticker to turn its row or ring; tap any
 side to roll the cube so that side is in the middle.
 
-**Practice** scrambles the cube by 1–5 turns for you to turn back ("Undo N
-moves"), so every puzzle ends with a solved cube. Three more drills build the
-white face, the first layer of the beginner method: the white lily (the four
-white edges round the yellow centre), the white cross (the petals dropped onto
-the white face, each on the side of its own colour) and the white corners
-(put in round the cross with a four-turn trigger). After that, the middle layer
-drill puts the four middle edges in with an eight-turn sequence. The guided course (the
+**Practice** has one drill per step of the beginner method, each starting
+where the step before leaves the cube: the white lily (the four white edges
+round the yellow centre) from a full scramble, the white cross (the petals
+dropped onto the white face, each on the side of its own colour), the white
+corners (put in round the cross with a four-turn trigger), the middle layer
+(the four middle edges, with an eight-turn sequence), the yellow cross and the
+yellow edges. The middle layer drill can also be played guided, every turn
+shown and explained. The guided course (the
 beginner method taught backwards) is parked on the `learning-full` branch.
 
 Vue 3 (Composition API) + TypeScript + Vite, deployed as static assets on
@@ -64,7 +65,7 @@ up, so its top row reads D3 D2 D1.
 | Folder | What lives there |
 | --- | --- |
 | `flatcube` | The open engine, installed from [vikdoro/flatcube](https://github.com/vikdoro/flatcube) (see its README). `src/model.ts`: slots, moves as permutations, solved check. `src/view.ts`: how the cube is held on the board, rolling it, board-relative move names. `src/notation.ts`, `src/facelets.ts`, `src/cube.ts`: standard notation, solver facelets, a headless cube. `src/board/`: the flat board, pure geometry. `src/vue/`: `createBoard` (the cube, its turn queue and animation clock), `CubeBoard` (SVG + dragging) and the keyboard. |
-| `src/cube/` | The drills, pure and stateless. `drills.ts`: building and hinting the undo puzzles. `lily.ts`, `cross.ts`, `corners.ts` and `middle.ts`: the white lily, white cross, white corners and middle layer drills, their goals, hints and puzzles. |
+| `src/cube/` | The drills, pure and stateless. `drills.ts`: the drill kinds and the scramble. `lily.ts`, `cross.ts`, `corners.ts` and `middle.ts`: the white lily, white cross, white corners and middle layer drills, their goals, hints and puzzles. |
 | `src/board.ts` | The app's one board, made with `createBoard`. |
 | `src/composables/` | App state, one shared instance each. `usePlayer`: the player's turns and undo. `usePractice`: the drill in progress. `useSheets`: which bottom sheet is open. |
 | `src/components/` | The UI: `TopBar` (which shows the drill in progress), `UndoButton` and `HintButton` under the board, and the sheets built on `BottomSheet` (`PracticeSheet`, `DrillIntroSheet`, `DrillDoneSheet`). |
