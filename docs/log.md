@@ -2,7 +2,7 @@
 
 Newest first: date, what changed, link.
 
-- 2026-11-23: Dropped the undo drill and the drill levels: each drill starts where the step before leaves the cube (PR_LINK)
+- 2026-11-23: Dropped the undo drill and the drill levels: each drill starts where the step before leaves the cube ([PR #6](https://github.com/vikdoro/cube/pull/6))
 - 2026-11-22: Added guided play for the middle layer drill: story slides under the board, every turn shown as arrows, off-plan turns re-planned or shown the way back ([PR #5](https://github.com/vikdoro/cube/pull/5))
 - 2026-11-21: Added the yellow edges practice drill ([PR #3](https://github.com/vikdoro/cube/pull/3))
 - 2026-11-21: Added the yellow cross practice drill ([PR #2](https://github.com/vikdoro/cube/pull/2))
