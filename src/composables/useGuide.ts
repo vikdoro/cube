@@ -2,6 +2,7 @@ import { computed, shallowRef } from 'vue'
 import { applyMove, inverse, sameMove, type Move } from 'flatcube'
 import type { DrillKind } from '../cube/drills'
 import type { Guide, GuideSegment } from '../cube/guide'
+import { lilyGuide } from '../cube/lilyGuide'
 import { middleGuide } from '../cube/middleGuide'
 import { board as cube } from '../board'
 import { usePlayer } from './usePlayer'
@@ -15,7 +16,7 @@ import { usePractice } from './usePractice'
  */
 
 /** The drills that can be played guided. */
-export const GUIDES: Partial<Record<DrillKind, Guide>> = { middle: middleGuide }
+export const GUIDES: Partial<Record<DrillKind, Guide>> = { lily: lilyGuide, middle: middleGuide }
 
 const practice = usePractice()
 const player = usePlayer()

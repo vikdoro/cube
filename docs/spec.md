@@ -16,10 +16,10 @@ Tadacube is an interactive 3×3 cube on a flat board (one face in the middle, th
   - Put in the middle layer (from the white face)
   - Make the yellow cross (from the first two layers, any shape on top)
   - Put the yellow edges in place (from the yellow cross, in any order)
-- The middle layer drill can be played guided, switched on in the Practice sheet: see "Guided steps" below.
+- The lily and middle layer drills can be played guided, switched on in the Practice sheet: see "Guided steps" below.
 - "Intro seen" flags and the guided switches are remembered in `localStorage`.
 - `?debug` labels every sticker with the place it starts on.
-- Unit tests for the drills, the guided middle layer, text and the engine boundary (9 files, 62 tests, all pass).
+- Unit tests for the drills, the guided lily and middle layer, text and the engine boundary (10 files, 67 tests, all pass).
 
 ## Next up
 
@@ -31,7 +31,7 @@ Confirmed by Viktor 2026-11-21 (the repo has no TODO comments or issues; these c
 3. Show progress across drills, e.g. which steps were completed
 4. Add a lint step
 
-## Guided steps (middle layer done)
+## Guided steps (lily and middle layer done)
 
 A drill can be played guided: the app walks the player through each step, turn by turn, and says why. The UX was pinned down with a throwaway prototype (`?proto`, PR #4). The middle layer drill comes first; the other drills follow in their own pull requests. This is not the parked "guided course" (chaining drills together); it is a way to play one drill.
 
@@ -63,6 +63,10 @@ The slides are written from the cube as it is, in plain words with the sides nam
 3. **Drop it in**, the mirrored trigger with the other side: one slide per turn (the pair moves round, the side lifts the gap, the pair lands over it, both drop home).
 
 From the second edge on, the reading slides are shortened to one, since the routine has been explained. An edge stuck in a wrong gap, or flipped in its own, gets one slide saying the same two triggers push it out onto the yellow face. Its eight turns follow, and then it's lined up and put in like any other edge.
+
+### The lily
+
+Each segment is one petal: the white edge that can come up in the fewest turns without any petal already made leaving the yellow face, so the lily only grows. That can take a few turns more than the shortest way. Turns of the yellow face at the start of a segment free the edge's place, and any turns of it count until it's free. Each turn's slide says what it does for the edge (brings it up, takes it round, makes way). Nothing comes before the lily, so every turn off the plan writes the story again from the cube as it is; the panel never turns red.
 
 ### Turns off the plan
 

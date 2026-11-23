@@ -6,12 +6,12 @@ import { applyMove, FACES, faceOf, permutation, pieceSlots, SLOTS, type CubeStat
  * Yellow is U on the cube, white D; face turns never move the centres, so the yellow face is always U.
  */
 
-const QUARTER_TURNS: Move[] = FACES.flatMap(layer => [{ layer, amount: 1 }, { layer, amount: 3 }] as Move[])
+export const QUARTER_TURNS: Move[] = FACES.flatMap(layer => [{ layer, amount: 1 }, { layer, amount: 3 }] as Move[])
 
 // the slots of edge stickers, and the white ones by their sticker ids
 const EDGE_SLOTS = SLOTS.filter(s => pieceSlots(s.index).length === 2).map(s => s.index)
-const WHITE_EDGES = EDGE_SLOTS.filter(id => faceOf(id) === 'D')
-const PETAL_SLOTS = EDGE_SLOTS.filter(slot => SLOTS[slot].face === 'U')
+export const WHITE_EDGES = EDGE_SLOTS.filter(id => faceOf(id) === 'D')
+export const PETAL_SLOTS = EDGE_SLOTS.filter(slot => SLOTS[slot].face === 'U')
 
 // where the white edge stickers sit, as one number: the four slots sorted, in base 54
 const keyOf = (slots: number[]) => [...slots].sort((a, b) => a - b).reduce((k, s) => k * 54 + s, 0)
