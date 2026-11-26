@@ -13,26 +13,26 @@ import { cornersHint, isFirstLayer } from './corners'
 
 const SIDES: Face[] = ['F', 'R', 'B', 'L']
 // the side to the right of each side, looking at it from outside with U up
-export const RIGHT: Record<Face, Face> = { F: 'R', R: 'B', B: 'L', L: 'F', U: 'U', D: 'D' }
+const RIGHT: Record<Face, Face> = { F: 'R', R: 'B', B: 'L', L: 'F', U: 'U', D: 'D' }
 
 // the middle edges, each as its two sticker ids
-export const EDGES = SLOTS.map(s => pieceSlots(s.index))
+const EDGES = SLOTS.map(s => pieceSlots(s.index))
   .filter(piece => piece.length === 2 && piece.every(slot => SIDES.includes(SLOTS[slot].face)))
   .filter((piece, i, all) => all.findIndex(other => `${other}` === `${piece}`) === i)
 
-export const edges = [0, 1, 2, 3]
+const edges = [0, 1, 2, 3]
 
 const turn = (layer: Face, amount: Move['amount'] = 1): Move => ({ layer, amount })
 
 /** The eight turns that take the edge in front of side `x`, on U, into the slot between `x` and side `y`. */
-export function insert(x: Face, y: Face): Move[] {
+function insert(x: Face, y: Face): Move[] {
   return RIGHT[x] === y
     ? [turn('U'), turn(y), turn('U', 3), turn(y, 3), turn('U', 3), turn(x, 3), turn('U'), turn(x)]
     : [turn('U', 3), turn(y, 3), turn('U'), turn(y), turn('U'), turn(x), turn('U', 3), turn(x, 3)]
 }
 
-export const isHome = (state: CubeState, i: number) => EDGES[i].every(id => state[id] === id)
-export const onTop = (state: CubeState, i: number) => EDGES[i].some(id => SLOTS[state.indexOf(id)].face === 'U')
+const isHome = (state: CubeState, i: number) => EDGES[i].every(id => state[id] === id)
+const onTop = (state: CubeState, i: number) => EDGES[i].some(id => SLOTS[state.indexOf(id)].face === 'U')
 
 /** How many middle edges are home. */
 export const placedEdges = (state: CubeState) => edges.filter(i => isHome(state, i)).length
@@ -41,7 +41,7 @@ export const placedEdges = (state: CubeState) => edges.filter(i => isHome(state,
 export const isTwoLayers = (state: CubeState) => isFirstLayer(state) && placedEdges(state) === 4
 
 /** For an edge on U: the side its side sticker is on, the colour of that sticker, and the colour on top. */
-export function onSide(state: CubeState, i: number) {
+function onSide(state: CubeState, i: number) {
   const [a, b] = EDGES[i]
   const [side, top] = SLOTS[state.indexOf(a)].face === 'U' ? [b, a] : [a, b]
   return { at: SLOTS[state.indexOf(side)].face, colour: faceOf(side), other: faceOf(top) }
@@ -51,7 +51,7 @@ export function onSide(state: CubeState, i: number) {
  * What the routine does next from a done first layer with no eight turns in progress: a U turn, or eight turns to put
  * an edge in or push one out. Null once the middle layer is done.
  */
-export function plan(state: CubeState): Move[] | null {
+function plan(state: CubeState): Move[] | null {
   if (isTwoLayers(state)) return null
   const top = edges.filter(i => onTop(state, i))
   const lined = top.find(i => onSide(state, i).at === onSide(state, i).colour)
