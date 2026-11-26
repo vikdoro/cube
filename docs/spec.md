@@ -18,6 +18,7 @@ Tadacube is an interactive 3×3 cube on a flat board (one face in the middle, th
   - Make the yellow cross (from a line, an L, a dot, or any shape)
   - Put the yellow edges in place (from a pair side by side, a pair across, or any order)
 - Last level per drill and "intro seen" flags are remembered in `localStorage`.
+- Dark theme only, whatever the device's light or dark setting.
 - `?debug` labels every sticker with the place it starts on.
 - Unit tests for the drills, text and the engine boundary (9 files, 59 tests, all pass).
 
