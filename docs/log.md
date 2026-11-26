@@ -2,7 +2,7 @@
 
 Newest first: date, what changed, link.
 
-- 2026-11-26: Made the app dark-only, whatever the device setting
+- 2026-11-26: Made the app dark-only, whatever the device setting ([PR #9](https://github.com/vikdoro/cube/pull/9))
 - 2026-11-26: Rolled main back to before guided play (reverts PRs #5 and #6); the work is parked on the `guided-play` branch ([PR #8](https://github.com/vikdoro/cube/pull/8))
 - 2026-11-21: Added the yellow edges practice drill ([PR #3](https://github.com/vikdoro/cube/pull/3))
 - 2026-11-21: Added the yellow cross practice drill ([PR #2](https://github.com/vikdoro/cube/pull/2))
